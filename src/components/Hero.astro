@@ -1,0 +1,188 @@
+---
+const trustBadges = [
+  "完全免费开源",
+  "10 分钟部署",
+  "中文友好",
+  "国内服务器友好",
+];
+---
+
+<section class="hero-bg relative overflow-hidden">
+  <!-- 背景网格 -->
+  <div class="bg-grid absolute inset-0 [mask-image:radial-gradient(ellipse_60%_50%_at_50%_30%,black,transparent)]" aria-hidden="true"></div>
+
+  <div class="relative mx-auto max-w-7xl px-4 pt-16 pb-20 sm:px-6 sm:pt-24 sm:pb-28 lg:px-8 lg:pt-32 lg:pb-36">
+    <div class="grid items-center gap-12 lg:grid-cols-12 lg:gap-8">
+      <!-- 左侧文字 -->
+      <div class="reveal lg:col-span-7">
+        <!-- 顶部标签 -->
+        <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/60 px-3 py-1 text-xs font-medium text-slate-700 shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
+          <span class="relative flex h-1.5 w-1.5">
+            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-400 opacity-75"></span>
+            <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand-500"></span>
+          </span>
+          v0.2.4 已发布 — 开箱即用的扩展中心
+          <svg viewBox="0 0 24 24" class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+
+        <!-- 主标题 -->
+        <h1 class="mt-6 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl xl:text-[64px] xl:leading-[1.05] dark:text-white">
+          让中国人造出
+          <span class="gradient-text">更好的网站</span>
+        </h1>
+
+        <!-- 副标题 -->
+        <p class="mt-6 max-w-2xl text-lg leading-relaxed text-slate-600 sm:text-xl dark:text-slate-300">
+          开箱即用的内容管理系统，专为中文站长和外贸独立站打造。
+          <br class="hidden sm:block" />
+          <span class="font-medium text-slate-700 dark:text-slate-200">10 分钟部署，0 代码运营，免费开源</span>。
+        </p>
+
+        <!-- CTA -->
+        <div class="mt-8 flex flex-wrap items-center gap-3">
+          <a
+            href="#quick-start"
+            class="group inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-slate-900/30 dark:bg-white dark:text-slate-900 dark:shadow-white/10"
+          >
+            立即免费试用
+            <svg viewBox="0 0 24 24" class="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h14M13 5l7 7-7 7" />
+            </svg>
+          </a>
+          <a
+            href="/docs"
+            class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition-all hover:border-slate-400 hover:bg-slate-50 dark:border-white/15 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10"
+          >
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>
+            5 分钟快速开始
+          </a>
+        </div>
+
+        <!-- Trust badges -->
+        <ul class="mt-10 flex flex-wrap gap-x-6 gap-y-3 text-sm text-slate-500 dark:text-slate-400">
+          {
+            trustBadges.map((badge) => (
+              <li class="flex items-center gap-1.5">
+                <svg viewBox="0 0 24 24" class="h-4 w-4 text-brand-500" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+                {badge}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <!-- 右侧终端窗口 -->
+      <div class="reveal lg:col-span-5" style="transition-delay: 150ms">
+        <div class="terminal" role="img" aria-label="演示如何用 Docker 启动 BangNiCMS">
+          <div class="terminal-header">
+            <span class="terminal-dot" style="background:#ff5f56"></span>
+            <span class="terminal-dot" style="background:#ffbd2e"></span>
+            <span class="terminal-dot" style="background:#27c93f"></span>
+            <span class="ml-3 text-xs text-slate-400">~/bangnicms — 部署中</span>
+          </div>
+          <div class="terminal-body">
+            <div id="terminal-content"></div>
+            <span id="terminal-cursor" class="terminal-cursor"></span>
+          </div>
+        </div>
+
+        <!-- 角落装饰 -->
+        <div class="pointer-events-none absolute -right-10 top-1/4 -z-10 h-72 w-72 rounded-full bg-brand-400/20 blur-3xl"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  type Step =
+    | { type: "prompt"; cmd: string; speed?: number }
+    | { type: "output"; text: string; success?: boolean; pause?: number };
+
+  const STEPS: Step[] = [
+    { type: "prompt", cmd: "wget cms.bonnei.com/docker-compose.yml" },
+    { type: "output", text: "已下载 docker-compose.yml" },
+    { type: "prompt", cmd: "docker compose up -d" },
+    { type: "output", text: "[+] Pulling 5/5 ... done" },
+    { type: "output", text: " ✓ Container bangnicms-postgres   Started" },
+    { type: "output", text: " ✓ Container bangnicms-redis      Started" },
+    { type: "output", text: " ✓ Container bangnicms-server     Started" },
+    { type: "output", text: " ✓ Container bangnicms-web        Started" },
+    { type: "output", text: " ✓ Container bangnicms-admin      Started" },
+    { type: "output", text: "✔ 部署完成，访问 http://localhost:6534/install 初始化", success: true, pause: 1500 },
+    { type: "prompt", cmd: "open http://localhost:6534" },
+  ];
+
+  const content = document.getElementById("terminal-content");
+  const cursor = document.getElementById("terminal-cursor");
+  if (content && cursor) {
+    let lineEl: HTMLElement | null = null;
+
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+    const typeText = async (text: string, speed = 35) => {
+      for (const ch of text) {
+        if (lineEl) lineEl.appendChild(document.createTextNode(ch));
+        await sleep(speed + Math.random() * 15);
+      }
+    };
+
+    const newLine = (className?: string) => {
+      lineEl = document.createElement("div");
+      if (className) lineEl.className = className;
+      content.appendChild(lineEl);
+      // 滚到底
+      content.parentElement?.scrollTo({ top: content.scrollHeight, behavior: "smooth" });
+    };
+
+    const run = async () => {
+      // 起始延迟，让用户先看到光标闪
+      await sleep(800);
+
+      for (const step of STEPS) {
+        if (step.type === "prompt") {
+          newLine();
+          const promptSpan = document.createElement("span");
+          promptSpan.className = "terminal-prompt";
+          promptSpan.textContent = "$ ";
+          lineEl!.appendChild(promptSpan);
+          const cmdSpan = document.createElement("span");
+          cmdSpan.className = "terminal-cmd";
+          lineEl!.appendChild(cmdSpan);
+          // 临时把 lineEl 指向 cmdSpan 用于打字
+          const realLine = lineEl!;
+          lineEl = cmdSpan;
+          await typeText(step.cmd, step.speed ?? 40);
+          lineEl = realLine;
+          await sleep(400);
+        } else {
+          newLine(step.success ? "terminal-success" : "terminal-output");
+          lineEl!.textContent = step.text;
+          await sleep(step.pause ?? 220);
+        }
+      }
+
+      // 循环：8 秒后重置
+      await sleep(8000);
+      content.innerHTML = "";
+      run();
+    };
+
+    // 仅在视口内启动（节流）
+    const io = new IntersectionObserver((entries) => {
+      if (entries[0]?.isIntersecting) {
+        io.disconnect();
+        run();
+      }
+    });
+    io.observe(content);
+  }
+</script>

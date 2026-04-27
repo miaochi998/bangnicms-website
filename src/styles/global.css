@@ -1,0 +1,228 @@
+@import "tailwindcss";
+
+/* ============================================================
+ * BangNiCMS 官方站 — 全局主题 token
+ * ------------------------------------------------------------
+ * Tailwind v4 通过 @theme 块定义设计 token
+ * 颜色与 BangNiCMS admin 主色一致：sky-500 #0EA5E9
+ * ============================================================ */
+
+@theme {
+  /* 字体栈 */
+  --font-sans:
+    "Inter", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    "Source Han Sans CN", "Noto Sans SC", system-ui, -apple-system, sans-serif;
+  --font-mono:
+    "JetBrains Mono", "Fira Code", "Source Code Pro", "Menlo", "Monaco",
+    "Consolas", monospace;
+
+  /* 品牌色（基于 sky 色阶，可独立微调） */
+  --color-brand-50: #f0f9ff;
+  --color-brand-100: #e0f2fe;
+  --color-brand-200: #bae6fd;
+  --color-brand-300: #7dd3fc;
+  --color-brand-400: #38bdf8;
+  --color-brand-500: #0ea5e9;
+  --color-brand-600: #0284c7;
+  --color-brand-700: #0369a1;
+  --color-brand-800: #075985;
+  --color-brand-900: #0c4a6e;
+  --color-brand-950: #082f49;
+
+  /* 强调渐变端点 */
+  --color-accent-from: #8b5cf6;
+  --color-accent-to: #0ea5e9;
+}
+
+/* ============================================================
+ * 暗色模式：跟随系统偏好（Tailwind v4 自动支持 .dark 类）
+ * ============================================================ */
+@variant dark (&:where(.dark, .dark *));
+
+/* ============================================================
+ * 基础重置 + 默认字体
+ * ============================================================ */
+:root {
+  color-scheme: light dark;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01", "ss03";
+}
+
+body {
+  @apply bg-white text-slate-900 antialiased;
+  font-synthesis: none;
+}
+
+.dark body {
+  @apply bg-slate-950 text-slate-100;
+}
+
+/* ============================================================
+ * 自定义工具类
+ * ============================================================ */
+
+/* 渐变文字 */
+.gradient-text {
+  background: linear-gradient(120deg, var(--color-accent-from), var(--color-accent-to));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Hero 背景：网格 + 渐变光晕（极轻） */
+.hero-bg {
+  background-color: theme(--color-white);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(14, 165, 233, 0.15), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 50%, rgba(139, 92, 246, 0.08), transparent 60%);
+}
+
+.dark .hero-bg {
+  background-color: theme(--color-slate-950);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(14, 165, 233, 0.25), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 50%, rgba(139, 92, 246, 0.15), transparent 60%);
+}
+
+/* Subtle grid pattern */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, rgba(14, 165, 233, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(14, 165, 233, 0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.dark .bg-grid {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+}
+
+/* 渐入动画基础 */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 链接 hover 下划线 */
+.link-underline {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  transition: background-size 300ms ease;
+}
+.link-underline:hover {
+  background-size: 100% 1px;
+}
+
+/* 滚动条样式（极简） */
+@media (pointer: fine) {
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.3);
+    border-radius: 5px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.5);
+  }
+}
+
+/* 终端窗口样式（Hero 用） */
+.terminal {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+  background: #0d1117;
+  color: #c9d1d9;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow:
+    0 30px 60px -15px rgba(2, 6, 23, 0.4),
+    0 18px 36px -18px rgba(2, 6, 23, 0.3);
+}
+
+.terminal-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.terminal-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.terminal-body {
+  padding: 16px 20px;
+  min-height: 360px;
+  overflow: hidden;
+}
+
+.terminal-prompt {
+  color: #58a6ff;
+}
+.terminal-cmd {
+  color: #c9d1d9;
+}
+.terminal-output {
+  color: #8b949e;
+  white-space: pre-wrap;
+}
+.terminal-success {
+  color: #3fb950;
+}
+.terminal-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 16px;
+  background: #c9d1d9;
+  vertical-align: text-top;
+  animation: blink 1s steps(2, jump-none) infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* 减弱动效（用户偏好） */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}

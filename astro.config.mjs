@@ -26,6 +26,9 @@ export default defineConfig({
         replacesTitle: false,
       },
       favicon: '/favicon.svg',
+      components: {
+        SocialIcons: './src/components/StarlightSocialIcons.astro',
+      },
       social: [
         {
           icon: 'github',

@@ -1,0 +1,64 @@
+---
+import Default from '@astrojs/starlight/components/SocialIcons.astro';
+
+const links = [
+  { label: '首页', href: '/' },
+  { label: '扩展市场', href: '/extensions' },
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<div class="bn-top-nav">
+  {
+    links.map(({ label, href }) => {
+      const isActive =
+        href === '/' ? currentPath === '/' : currentPath.startsWith(href);
+      return (
+        <a href={href} class="bn-top-nav__link" data-active={isActive}>
+          {label}
+        </a>
+      );
+    })
+  }
+</div>
+
+<Default {...Astro.props}><slot /></Default>
+
+<style>
+  .bn-top-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-right: 0.5rem;
+  }
+
+  .bn-top-nav__link {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--sl-color-gray-3);
+    text-decoration: none;
+    border-radius: 6px;
+    transition:
+      color 200ms ease,
+      background 200ms ease;
+  }
+
+  .bn-top-nav__link:hover {
+    color: var(--sl-color-text);
+    background: var(--sl-color-gray-6);
+  }
+
+  .bn-top-nav__link[data-active="true"] {
+    color: var(--sl-color-text);
+    font-weight: 600;
+  }
+
+  /* 在窄屏隐藏文本导航，避免与搜索框挤压 */
+  @media (max-width: 50rem) {
+    .bn-top-nav {
+      display: none;
+    }
+  }
+</style>

@@ -5,30 +5,70 @@ template: splash
 hero:
   tagline: 从零到上线，再到日常运营的完整指南
   actions:
-    - text: 立即开始安装
-      link: /docs/getting-started/installation
+    - text: BangNiCMS 是什么
+      link: /docs/intro/what-is-bangnicms
       icon: right-arrow
       variant: primary
+    - text: 立即部署
+      link: /docs/deploy/server-and-domain
+      icon: rocket
+      variant: secondary
     - text: 返回宣传站
       link: /
       icon: external
+      variant: minimal
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
-## 选你想去的地方
+## 第一次来？
 
 <CardGrid stagger>
-  <Card title="快速开始" icon="rocket">
-    [安装部署](/docs/getting-started/installation) — 10 分钟把 BangNiCMS 部署到你的服务器。
+  <Card title="BangNiCMS 是什么" icon="information">
+    一句话定义、谁适合用、谁不适合用、与其他 CMS 的差异。
+    [开始阅读 →](/docs/intro/what-is-bangnicms)
   </Card>
-  <Card title="内容管理" icon="document">
-    文章、产品、单页、下载，4 个内置模型的运营手册（建设中）。
+  <Card title="核心概念" icon="puzzle">
+    站点 / 语言 / 内容类型 / 主题 / 插件 / 模型 — 5 分钟掌握全站术语。
+    [开始阅读 →](/docs/intro/core-concepts)
   </Card>
-  <Card title="多语言" icon="translate">
-    一站搞定中英双语 / 多语言 SEO / AI 翻译（建设中）。
+  <Card title="5 分钟体验" icon="rocket">
+    不用买服务器，本地跑一个完整实例点点核心功能。
+    [开始阅读 →](/docs/intro/quick-start)
   </Card>
-  <Card title="主题与插件" icon="puzzle">
-    从扩展市场一键安装、卸载升级、版本回滚（建设中）。
+  <Card title="部署到 VPS" icon="external">
+    准备服务器域名、用 Portainer 一键部署、走 5 步安装向导。
+    [开始阅读 →](/docs/deploy/server-and-domain)
   </Card>
 </CardGrid>
+
+## 文档章节
+
+| 章节 | 已完成 | 主题 |
+|---|---|---|
+| **介绍** | 3 / 3 | BangNiCMS 是什么 / 核心概念 / 快速体验 |
+| **部署上线** | 5 / 5 | 服务器域名 / Portainer / 安装向导 / DNS HTTPS / 首次配置 |
+| 内容管理 | 0 / 9 | 页面 / 产品 / 文章 / 下载 / 分类 / 菜单 / 媒体（建设中） |
+| 多语言 | 0 / 6 | 启用 / 完成度 / AI 翻译 / hreflang（建设中） |
+| 站点配置 | 0 / 5 | 品牌 / SEO 默认 / 上传策略 / 联系信息 / sitemap（建设中） |
+| 主题 | 0 / 5 | 安装 / 启用 / 配置面板 / 卸载（建设中） |
+| 插件 | 0 / 5 | 安装 / 配置 / 页面组件 / 卸载（建设中） |
+| 模型包 | 0 / 5 | customFields / 字段使用 / 主题集成（建设中） |
+| AI 助手 | 0 / 4 | provider 接入 / 媒体描述 / 翻译（建设中） |
+| 询盘与转化 | 0 / 5 | 表单接入 / 状态管理 / CSV / 来源归因（建设中） |
+| 数据统计 | 0 / 4 | 总览 / 内容 / 国家 / 访客（建设中） |
+| 用户与权限 | 0 / 3 | 角色 / 创建账号 / 会话（建设中） |
+| 备份与升级 | 0 / 5 | 策略 / 手动 / cron / 升级 / 恢复（建设中） |
+| 开发者 | 0 / 7 | 主题开发 / 插件开发 / 模型包开发 / Registry / API（建设中） |
+| 故障排查 | 0 / 5 | 部署 / Caddy / 数据库 / 升级 / bug 报告（建设中） |
+| 参考 | 0 / 4 | 术语表 / 命令速查 / 配置项 / 路线图（建设中） |
+
+**当前进度**：8 / 80 篇（10%）—— 正按章节推进。
+
+## 怎么参与共建
+
+文档源码在 [bangnicms-website](https://github.com/miaochi998/bangnicms-website)，欢迎：
+
+- 提 Issue 报告错误或缺失内容
+- 提 PR 直接补充章节
+- 在 Discussions 提建议新章节

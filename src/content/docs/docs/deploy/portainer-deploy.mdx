@@ -1,0 +1,239 @@
+---
+title: Portainer 一键部署
+description: SSH 登录、运行初始化脚本、设置 Portainer admin、粘贴 docker-compose.yml、填 5 个环境变量、Deploy
+---
+
+import { Aside, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+本文带你完成 BangNiCMS 部署 8 步流程的**第 2~7 步**：从 SSH 登录到 6 个容器全部 healthy。
+
+<Aside type="note">
+开始前请先完成 [服务器与域名准备](/docs/deploy/server-and-domain) 中的全部清单项（DNS 已 ping 通、4 端口已放行）。
+</Aside>
+
+## 第 2 步：SSH 登录服务器
+
+| 系统 | 推荐 SSH 工具 |
+|---|---|
+| Mac / Linux | 自带 Terminal（`ssh root@IP`） |
+| Windows | [Tabby](https://tabby.sh/)（推荐）/ MobaXterm / PowerShell（Win10+ 自带 ssh） |
+
+```bash
+ssh root@你的服务器IP
+```
+
+输入 `yes` 确认指纹 → 输入 root 密码 → 看到 `root@xxx:~#` 即登录成功。
+
+## 第 3 步：运行初始化脚本
+
+将下面 3 条命令依次粘贴到 SSH 窗口：
+
+<Tabs>
+<TabItem label="海外服务器" icon="rocket">
+
+```bash
+# 1) 下载脚本
+curl -fsSL https://raw.githubusercontent.com/miaochi998/bncms-deploy/main/init-server.sh -o /tmp/init.sh
+
+# 2) 后台运行
+nohup bash /tmp/init.sh </dev/null >/tmp/bncms-init.log 2>&1 &
+
+# 3) 实时查看进度
+tail -f /tmp/bncms-init.log
+```
+
+</TabItem>
+<TabItem label="国内服务器" icon="seti:docker">
+
+```bash
+# 1) 下载脚本
+curl -fsSL https://raw.githubusercontent.com/miaochi998/bncms-deploy/main/init-server.sh -o /tmp/init.sh
+
+# 2) 后台运行（自动配 Docker 镜像加速器）
+nohup bash /tmp/init.sh --mirror=cn </dev/null >/tmp/bncms-init.log 2>&1 &
+
+# 3) 实时查看进度
+tail -f /tmp/bncms-init.log
+```
+
+</TabItem>
+</Tabs>
+
+<Aside type="tip" title="为什么要用 nohup？">
+`apt upgrade` 升级 `openssh-server` 时会重启 sshd，**SSH 连接会被断开**。用 `nohup` 后台运行，即使 SSH 断了脚本也会继续跑。SSH 断开后重连，再 `tail -f /tmp/bncms-init.log` 看进度即可。
+</Aside>
+
+### 脚本会做 3 件事（约 2-5 分钟）
+
+1. **升级系统软件包**（停用 unattended-upgrades + apt upgrade）
+2. **安装 Docker**（官方 `get.docker.com` 脚本）
+3. **配置防火墙**（ufw 放行 22 / 80 / 443 / 9443）+ 创建 `/opt/bangnicms/data` 数据目录 + 启动 Portainer CE
+
+### 脚本结束后会显示
+
+```
+====================================================
+  🎉  服务器初始化完成！
+====================================================
+  Docker      : Docker version 27.x.x
+  Portainer   : https://你的IP:9443
+  数据目录    : /opt/bangnicms/data
+  ...
+```
+
+**记下 Portainer URL**（看到 "🎉 服务器初始化完成" 后按 `Ctrl+C` 退出 tail）。
+
+## 第 4 步：设置 Portainer admin（5 分钟内必须完成）
+
+<Aside type="caution" title="时间窗口限制">
+Portainer 启动后 **5 分钟内必须创建 admin 账号**，否则会进入"安全锁定"状态需要重启容器。
+</Aside>
+
+### 4.1 浏览器打开 Portainer
+
+```
+https://你的服务器IP:9443
+```
+
+### 4.2 跳过证书警告
+
+会弹出"您的连接不是私密连接"（因为 Portainer 用自签证书）。
+
+- Chrome / Edge：**高级 → 继续访问 ...（不安全）**
+- Safari：**显示详细信息 → 访问此网站**
+
+### 4.3 创建 admin 账号
+
+| 字段 | 填什么 |
+|---|---|
+| Username | `admin` 或自定义 |
+| Password | **至少 12 位**，含大写 + 小写 + 数字 + 特殊字符<br/>（如 `MySecure@2026Pass`） |
+| Confirm Password | 与上面一致 |
+
+点 **Create user** → **Get Started** → 选 **local**（本地 Docker 环境） → 进入 Dashboard。
+
+<Aside type="caution">
+**记住你刚设的 Portainer 密码**，丢了需要 `docker rm -f portainer && docker volume rm portainer_data` 重新初始化。
+</Aside>
+
+## 第 5 步：创建 BangNiCMS Stack
+
+<Steps>
+
+1. 左侧菜单 → **Stacks** → 右上角 **+ Add stack**
+2. **Name** 字段填：`bangnicms`
+3. **Build method** 选 **Web editor**
+
+</Steps>
+
+### 复制 docker-compose.yml 内容
+
+打开浏览器新标签页访问：
+
+```
+https://raw.githubusercontent.com/miaochi998/bncms-deploy/main/docker-compose.yml
+```
+
+**全选 → 复制全部内容**（约 250 行）→ 粘贴到 Portainer 的 Web editor 输入框（替换默认注释）。
+
+## 第 6 步：填 5 个环境变量并 Deploy
+
+### 6.1 生成 3 个密钥
+
+回到 SSH 窗口，**执行下面 3 条命令各一次**：
+
+```bash
+echo "BANGNICMS_POSTGRES_PASSWORD = $(openssl rand -hex 24)"
+echo "BANGNICMS_JWT_SECRET = $(openssl rand -hex 24)"
+echo "BANGNICMS_REVALIDATE_SECRET = $(openssl rand -hex 24)"
+```
+
+输出三串 48 位随机字符串，**立即复制到密码管理器或备忘录**。
+
+<Aside type="danger">
+密钥丢了需要重置数据库，业务数据会全部丢失！变量名前缀必须是 `BANGNICMS_`，与下一步 Portainer 表单里的 Name **完全一致**。
+</Aside>
+
+### 6.2 在 Portainer 表单填环境变量
+
+回到 Portainer 的 Add stack 页面，滚动到 Web editor 下方的 **Environment variables** 区域，点 **Add environment variable** 5 次，逐行填：
+
+| Name | Value |
+|---|---|
+| `DOMAIN` | 你的域名（不带 `https://` 不带 `www`，例 `mysite.com`） |
+| `ADMIN_EMAIL` | 你的常用邮箱（用于 Let's Encrypt 续期通知） |
+| `BANGNICMS_POSTGRES_PASSWORD` | 第 1 个密钥 |
+| `BANGNICMS_JWT_SECRET` | 第 2 个密钥 |
+| `BANGNICMS_REVALIDATE_SECRET` | 第 3 个密钥 |
+
+### 6.3 点 Deploy the stack
+
+按钮变 **Deployment in progress...**：
+
+| 时间 | 阶段 |
+|---|---|
+| 1-3 分钟 | 拉取 6 个镜像（postgres / redis / server / web / admin / caddy，约 1.5 GB） |
+| 3-5 分钟 | 启动容器 + 初始化数据库 |
+| 5-8 分钟 | Caddy 向 Let's Encrypt 申请 HTTPS 证书 |
+
+部署成功后跳转回 Stacks 列表，`bangnicms` 显示 **Active**。
+
+## 第 7 步：验证 6 个容器全部 healthy
+
+左侧菜单 → **Containers** → 看到 6 个：
+
+| 容器名 | 期望状态 |
+|---|---|
+| `bangnicms-postgres` | **healthy ✓** |
+| `bangnicms-redis` | **healthy ✓** |
+| `bangnicms-server` | **healthy ✓** |
+| `bangnicms-web` | running |
+| `bangnicms-admin` | running |
+| `bangnicms-caddy` | running |
+
+<Aside type="note">
+Postgres / Redis / Server 都有 healthcheck 所以显示 **healthy**；Web / Admin / Caddy 显示 **running** 即正常。
+</Aside>
+
+### 验证 HTTPS 证书已签发
+
+```bash
+curl -I https://你的域名
+```
+
+期望看到 `HTTP/2 200` 或 `HTTP/2 308`（重定向）。看到 `SSL handshake failure` → 等 1 分钟再试，Caddy 还在签发。
+
+## 常见问题
+
+### Caddy 一直不 running
+
+最常见原因：**DNS 没生效**或**安全组没放行 80/443**。
+
+```bash
+docker logs bangnicms-caddy --tail 60
+```
+
+- 看到 `obtained certificate` → 成功
+- 看到 `timeout` / `connection refused` → 检查 DNS 与安全组
+
+详见 [DNS 与 HTTPS](/docs/deploy/dns-and-https)。
+
+### Portainer 5 分钟超时锁定
+
+```bash
+docker rm -f portainer
+docker volume rm portainer_data
+docker run -d --name portainer --restart=unless-stopped \
+  -p 9000:9000 -p 9443:9443 \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v portainer_data:/data \
+  portainer/portainer-ce:latest
+```
+
+### `docker pull` 在国内超时
+
+`ghcr.io` 偶发不稳定，把 `docker-compose.yml` 里所有 `ghcr.io/miaochi998/bangnicms-*` 替换为 `ghcr.nju.edu.cn/miaochi998/bangnicms-*`（南大镜像代理），然后 Stacks → Update。
+
+## 接下来
+
+6 个容器全部 healthy 后，[**走安装向导 →**](/docs/deploy/installation-wizard) 完成最后 5 步配置（环境检查 / 数据库迁移 / 创建超管 / 站点信息 / 示例数据）。

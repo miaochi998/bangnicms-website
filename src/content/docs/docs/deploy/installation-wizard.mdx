@@ -1,0 +1,155 @@
+---
+title: 5 步安装向导
+description: 容器全部 healthy 后，访问 admin 域名走 5 步安装向导：环境检查 / 数据库迁移 / 创建超管 / 站点配置 / 示例数据
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+6 个容器全部 healthy 后，浏览器访问 `https://admin.你的域名`，会**自动跳转到 `/install`** 安装向导，共 5 步：
+
+| Step | 标题 | 做什么 |
+|---|---|---|
+| 1 | **环境检查** | 自动检测数据库 / Redis / 存储目录 |
+| 2 | **数据库迁移** | 应用 Prisma migration |
+| 3 | **创建超级管理员** | 设置后台登录账号（role = `super_admin`） |
+| 4 | **站点基础信息** | 站点名称 / 默认语言 / URL 策略 |
+| 5 | **示例数据与完成** | 选择导入示例数据或从空站开始，安装锁定 |
+
+完成后 `/install` 会**自动关闭**，再次访问该路径返回 403 `ALREADY_INSTALLED`。
+
+<Aside type="note">
+本向导的全部 API 路径在 `install.controller.ts` 中实现，路由为 `/install/*`，**不走 `/api/2026-04` 版本前缀**——因为它是部署后业务 API 可用之前的特殊流程。
+</Aside>
+
+## Step 1：环境检查
+
+向导自动调用 `POST /install/check-env`，检测：
+
+- **数据库连通**（`DATABASE_URL`）
+- **Redis 连通**（`REDIS_URL`）
+- **存储目录可写**（`storage/uploads/`）
+- **JWT 密钥已设置**（`BANGNICMS_JWT_SECRET`）
+- **Revalidate 密钥已设置**（`BANGNICMS_REVALIDATE_SECRET`）
+
+<Aside type="caution">
+任何一项红色 ✗ 都不能继续。**最常见**：忘填某个 Portainer 环境变量，请回到 Stack → Editor 补齐 → Update the stack。
+</Aside>
+
+全绿点 **Next**。
+
+## Step 2：数据库迁移
+
+向导调用 `POST /install/migrate`，应用 Prisma 数据库迁移文件。
+
+- **首次部署**：约 30 秒（创建所有表）
+- **升级部署**：通常秒级（无新迁移时直接通过）
+- 迁移**幂等**，可重复运行
+
+全绿点 **Next**。
+
+## Step 3：创建超级管理员
+
+设置 BangNiCMS 后台的初始账号——**这个账号管业务，不是 Portainer 那个**。
+
+| 字段 | 必填 | 说明 |
+|---|---|---|
+| Username | 是 | 登录用户名（仅限字母数字 + 下划线） |
+| Email | 否 | 用于密码找回（推荐填） |
+| Password | 是 | **至少 8 位** |
+| Name | 否 | 显示名（如"运营张三"） |
+
+<Aside type="tip">
+推荐**用户名 + 强密码**而非邮箱登录。后续如需新增账号，请到「**用户管理**」创建。
+</Aside>
+
+向导调用 `POST /install/create-admin`，账号 `role` 字段固定为 `super_admin`。
+
+## Step 4：站点基础信息
+
+填写站点全局元信息（**安装后可在「站点设置」随时修改**）。
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `siteName` | 必填 | 站点名称（如"邦尼网络"） |
+| `siteDescription` | 可选 | 站点副标题 / 简介 |
+| `defaultLanguageCode` | 必填 | 默认语言代码（如 `zh-CN` / `en-US`） |
+| `urlStrategy` | 必填 | URL 策略：`prefix`（前缀，如 `/en/products`）或 `subdomain`（子域名，如 `en.example.com`） |
+| `siteHost` | 可选 | 主域名（用于多语言子域名策略时） |
+
+### 关于 URL 策略
+
+| 策略 | 例子 | 何时选 |
+|---|---|---|
+| **prefix** | `mysite.com/en/products` | 默认推荐：单域名简单清晰 |
+| **subdomain** | `en.mysite.com/products` | 各语言独立 SEO 权重；需配置每个子域名 DNS |
+
+<Aside type="tip">
+不确定？选 **prefix** 即可，永远可以后续切换（但已有索引会丢失，建议谨慎）。
+</Aside>
+
+向导调用 `POST /install/site-config`。
+
+## Step 5：示例数据与完成
+
+二选一：
+
+### 选项 A：导入示例数据（**推荐首次部署**）
+
+向导调用 `POST /install/seed` 自动创建：
+
+- **12 个示例产品**（含规格、图集、关联下载、双语）
+- **21 篇示例文章**（行业洞察、产品介绍、新闻）
+- **10 个首页模块**（Hero、产品矩阵、客户案例、CTA 等）
+- **三语 i18n 字典**（zh-CN / en-US / 默认占位）
+- **示例分类、菜单、媒体资源**
+
+适合**第一次部署**，让你快速看到一个"完整"的站点效果，再按需替换为自己的内容。
+
+### 选项 B：跳过，从空站开始
+
+完全干净的数据库，所有内容自己一条一条创建。适合**已有完整内容素材**的运营。
+
+### 完成
+
+点 **Finalize** 调用 `POST /install/finalize`：
+
+1. 写入 `storage/install.lock`（标记已初始化）
+2. 关闭 `/install` 路由
+3. 跳转后台首页
+
+**部署完成 🎉**
+
+## 跳过向导的两种边界情况
+
+### 已部署过但想重置
+
+需要重新走向导意味着**清空现有数据**：
+
+```bash
+# 在服务器上
+docker compose -p bangnicms down
+docker volume rm bangnicms_postgres_data
+docker compose -p bangnicms up -d
+```
+
+数据库重新干净后，访问 `/install` 会再次出现向导。
+
+### 已初始化但 lock 文件丢失
+
+极小概率出现：手动删了 `storage/install.lock` 但数据库已有数据。此时 `/install` 仍判定 `initialized=true`（因为 `SiteConfig` 表已写入数据），会返回 403。
+
+需要从数据库**手动删除** `SiteConfig` 单条记录方可重走。**不推荐**操作。
+
+## 关于安装向导的安全性
+
+- `/install/status` 公开可读，未初始化时返回一次性 token
+- 所有 `POST /install/*` 必须带 `X-Install-Token` header，失败 403
+- 已初始化后所有 POST 返回 `403 { code: 'ALREADY_INSTALLED' }`
+- token 由 `storage/install.lock` 保护，进程重启不会丢失
+
+## 接下来
+
+完成安装向导后，进入下一步：
+
+- [**DNS 与 HTTPS**](/docs/deploy/dns-and-https) — 排查证书与跳转问题（如有）
+- [**首次站点配置**](/docs/deploy/first-site-setup) — 配置品牌、SEO、菜单这 10 件最关键的事

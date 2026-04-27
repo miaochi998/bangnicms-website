@@ -1,0 +1,237 @@
+---
+title: DNS 与 HTTPS
+description: BangNiCMS 用 Caddy 自动申请 Let's Encrypt 证书。本文讲清楚证书签发原理、续期机制、常见故障排查
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+BangNiCMS 内置 **Caddy** 作为反向代理与自动 HTTPS 入口，部署完成后**无需任何手动配置**即可获得有效证书。本文帮你理解工作机制并排查常见问题。
+
+## Caddy 的角色
+
+部署后的 6 个容器中，`bangnicms-caddy` 负责：
+
+```
+浏览器请求 (HTTPS)
+        │
+        ▼
+┌──────────────────┐
+│  bangnicms-caddy │ ← 监听 80 / 443 端口
+│  (反向代理 + ACME)│
+└──┬───────────┬───┘
+   │           │
+   │           └─── admin.example.com → bangnicms-admin:6534
+   │
+   └─── example.com → bangnicms-web:6533
+```
+
+Caddy 同时：
+
+1. **80 端口**：承担 ACME HTTP-01 challenge（证书签发验证），并对其它请求 301 跳转到 HTTPS
+2. **443 端口**：处理 HTTPS 请求，反向代理到对应内部服务
+3. **自动续期**：证书剩余 30 天时自动续签
+
+## 证书签发原理（Let's Encrypt + ACME）
+
+Caddy 启动时为 `DOMAIN` 与 `admin.DOMAIN` 两个域名同时申请证书：
+
+1. 向 [Let's Encrypt](https://letsencrypt.org/) 发起 ACME 请求
+2. Let's Encrypt 反向访问 `http://你的域名/.well-known/acme-challenge/...`
+3. Caddy 在该路径返回特定 token 完成验证
+4. Let's Encrypt 签发证书（90 天有效）
+5. 证书存储到 `/data/caddy/`（容器内 volume，主机映射到 `bangnicms_caddy_data`）
+
+整个过程**完全自动**，无需手动操作。
+
+## 验证证书已签发
+
+### 命令行验证
+
+```bash
+curl -I https://你的域名
+```
+
+期望响应：
+
+```
+HTTP/2 200
+server: Caddy
+```
+
+### 浏览器验证
+
+打开 `https://你的域名`，地址栏出现**锁图标**即成功。
+
+点击锁图标 → 证书 → 应看到：
+- Issuer: `Let's Encrypt`
+- Valid until: 约 90 天后
+
+### Caddy 日志验证
+
+```bash
+docker logs bangnicms-caddy --tail 60 | grep -i "obtained\|certificate"
+```
+
+期望输出含：
+
+```
+"msg": "obtained certificate"
+"identifiers": ["你的域名", "admin.你的域名"]
+```
+
+## 故障排查清单
+
+### 故障 1：Caddy 一直卡在 starting / restarting
+
+```bash
+docker logs bangnicms-caddy --tail 80
+```
+
+#### 症状 A：`timeout` / `connection refused` / `lookup ... no such host`
+
+**原因**：DNS 没生效，或 80/443 端口外部无法访问。
+
+**排查**：
+
+```bash
+# 1. 在你的本地电脑（不是服务器）上 ping
+ping 你的域名
+ping admin.你的域名
+```
+
+两条都必须返回**服务器公网 IP**。
+
+```bash
+# 2. 在你的本地电脑上检测 80 端口
+curl -v http://你的域名
+```
+
+应能拿到 308 跳转到 HTTPS。如果连不上：
+
+- **云厂商安全组**：阿里云 / 腾讯云 → 检查 80/443 已放行
+- **服务器防火墙**：`sudo ufw status`，应看到 `80/tcp ALLOW`、`443 ALLOW`
+- **CDN 干扰**：Cloudflare 启用了"代理 (Proxied)"会拦截 ACME，请把 DNS 记录的橙云改为**灰云 (DNS only)**
+
+#### 症状 B：`too many requests` / `rate limit`
+
+**原因**：Let's Encrypt 速率限制（每域名每周 50 次失败重试）。
+
+**解决**：等 1 小时后再 Restart caddy 容器。如频繁触发，**强烈建议先把 DNS 配对再部署**。
+
+#### 症状 C：`unauthorized: Invalid response`
+
+**原因**：80 端口被其他服务占用。
+
+**排查**：
+
+```bash
+sudo lsof -i :80
+```
+
+如果看到 nginx / apache / 其他进程，先停止它们：
+
+```bash
+sudo systemctl stop nginx
+sudo systemctl disable nginx
+```
+
+### 故障 2：浏览器显示"您的连接不是私密连接"
+
+#### 区分两种情况
+
+- **访问 `https://9443` 端口（Portainer）**：这是 Portainer 自签证书，**正常现象**，点"高级 → 继续访问"。详见 [Portainer 部署](/docs/deploy/portainer-deploy)。
+- **访问主域名 `https://example.com`**：这是异常，需排查。
+
+#### 异常情况排查
+
+```bash
+docker logs bangnicms-caddy --tail 60
+```
+
+- 看到 `obtained certificate` → 证书已成功，可能是浏览器缓存。**清除浏览器缓存重试**或**用无痕窗口**。
+- 看到错误 → 按上面"故障 1"流程排查。
+
+### 故障 3：HTTPS 不自动跳转
+
+访问 `http://example.com` 应自动 308 跳转到 `https://example.com`。
+
+如果没跳转：
+
+```bash
+docker logs bangnicms-caddy --tail 40
+```
+
+通常是 Caddy 还没拿到证书，证书签发完成后会自动启用跳转。
+
+### 故障 4：admin.example.com 打不开但 example.com 正常
+
+**原因**：DNS 只配了 `@` 一条记录，没配 `admin` 子域名。
+
+**解决**：到 DNS 控制台补一条 A 记录：
+
+| Type | Name | Content | TTL |
+|---|---|---|---|
+| A | `admin` | 服务器 IP | Auto |
+
+等 5-10 分钟生效，再 `docker restart bangnicms-caddy` 重新签发证书。
+
+## 证书自动续期
+
+Caddy **自动续期**机制：
+
+- 每天检查所有证书的有效期
+- 距过期 < 30 天时自动续签
+- 续签失败会写日志，但不影响现有证书使用
+
+无需任何手动操作。如果想确认续期是否正常：
+
+```bash
+docker exec bangnicms-caddy ls -la /data/caddy/certificates/acme-v02.api.letsencrypt.org-directory/你的域名/
+```
+
+应能看到 `.crt` 与 `.key` 文件，修改时间是最近一次续签时间。
+
+## 多语言子域名场景
+
+如果你在安装向导第 4 步选了 `urlStrategy: "subdomain"`（多语言走子域名），还需要为每个语言子域名配 DNS：
+
+| Type | Name | Content |
+|---|---|---|
+| A | `@` | 服务器 IP |
+| A | `admin` | 服务器 IP |
+| A | `en` | 服务器 IP（启用 en-US 语言时） |
+| A | `es` | 服务器 IP（启用 es-ES 语言时） |
+
+并需要在 docker-compose.yml 里把 `Caddyfile` 配置追加这些子域名。这是高级用法，详见 [多语言（即将上线）](#)。
+
+## 国内 ICP 备案与 HTTPS
+
+如服务器在国内（阿里云/腾讯云国内机房），**必须先 ICP 备案**才能：
+
+- 用 80 端口 → 影响 Caddy ACME challenge
+- 用 443 端口 → 影响 HTTPS
+
+未备案时建议：
+
+1. **先用海外服务器开发**（香港/新加坡/美国）
+2. **完成业务上线后再迁移国内**（如有需要）
+
+## 重置 Caddy 证书
+
+极端情况下需要清空所有证书重来：
+
+```bash
+docker stop bangnicms-caddy
+docker volume rm bangnicms_caddy_data
+docker start bangnicms-caddy
+```
+
+Caddy 会重新申请所有证书。**注意**：会触发 Let's Encrypt 速率限制窗口，确认问题后再操作。
+
+## 接下来
+
+证书与 HTTPS 都正常后，进入下一步：
+
+[**首次站点配置 →**](/docs/deploy/first-site-setup)
+
+我们会配置品牌（LOGO / 主色 / 副标题）、SEO 默认、上传策略、菜单这 10 件最关键的事，让站点真正"上线"。

@@ -1,0 +1,111 @@
+---
+title: BangNiCMS 是什么
+description: 面向中文站长的开源跨境电商 CMS · 多语言 / 主题 / 插件 / AI 翻译 / 在线升级 / 自动备份
+---
+
+import { Card, CardGrid, Aside } from '@astrojs/starlight/components';
+
+**BangNiCMS** 是一个**开源、自托管**的内容管理系统，专为**中文站长 / 外贸企业 / 内容创作者**设计。一句话概括：
+
+> 用 10 分钟把一个**专业、多语言、可被搜索引擎收录**的官网或博客部署到自己的服务器上，从此不再依赖任何平台。
+
+## 三个核心定位
+
+<CardGrid>
+  <Card title="开箱即用" icon="rocket">
+    一行命令启动 6 个容器（postgres / redis / server / web / admin / caddy），
+    Portainer 模板部署。**无需写一行代码**就能上线一个完整站点。
+  </Card>
+  <Card title="天生多语言" icon="translate">
+    每条内容可独立维护多语言版本，自动生成 `hreflang` 标签，
+    支持 **AI 批量翻译**与人工复审，多语言完成度仪表板一目了然。
+  </Card>
+  <Card title="可生长扩展" icon="puzzle">
+    主题 / 插件 / 模型包三种扩展机制，全部通过 zip 上传安装。
+    扩展市场（[/extensions](/extensions)）持续上新。
+  </Card>
+</CardGrid>
+
+## 谁适合用 BangNiCMS
+
+- **外贸 / B2B / 工业品企业**：产品库 + 多语言询盘表单 + 谷歌 SEO 友好
+- **跨境独立站起步阶段**：免月费、免抽成、数据完全自有
+- **写作者 / 独立博客**：极简博客主题、文章工作流、RSS / 订阅
+- **需要自定义内容结构的项目**：模型包扩展，无需改数据库 schema
+- **追求性能与稳定**：服务端预渲染 + Caddy 自动 HTTPS + Lighthouse 90+
+
+## 谁不适合用
+
+- **完全不想接触服务器**：BangNiCMS 是自托管方案，你需要一台 VPS。
+  如果完全不想运维，目前请用 Webflow / Wix / Shopify 等 SaaS。
+- **重交易型电商**：本系统聚焦"官网 + 询盘 + 内容"，不内置购物车 / 在线支付 / 物流模块。
+  如需完整电商能力，请用 Shopify / Magento / OpenCart。
+- **需要 PHP 生态扩展**：本系统基于 Node.js / TypeScript，
+  如果你有大量 WordPress 插件依赖，迁移成本较高。
+
+## 系统能力地图
+
+BangNiCMS 后台目前提供 **20 个核心功能模块**：
+
+```
+[运营基础]
+  工作台 · 站点设置 · 语言管理 · 用户管理
+
+[内容创作]
+  页面 · 产品 · 文章 · 下载 · 分类 · 菜单 · 媒体库
+
+[扩展生态]
+  扩展中心 · 页面组件 · 模型管理 · 主题配置（动态）
+
+[转化与运营]
+  询盘管理 · 数据统计 · AI 助手
+
+[运维]
+  系统升级 · 数据备份
+```
+
+这些模块的具体使用方式将在后续章节逐一介绍。
+
+## 与其他 CMS 的差异
+
+我们在首页提供了一张[**对比表**](/#compare)，下面是简短的差异描述：
+
+| 维度 | BangNiCMS | WordPress | Strapi | Ghost |
+|---|---|---|---|---|
+| 中文友好（界面/文档/AI 助手） | ✓ | 部分 | 部分 | × |
+| 内置多语言（hreflang + AI 翻译） | ✓ | 部分 | ✓ | × |
+| 扩展市场（主题/插件/模型） | ✓ | ✓ | × | 部分 |
+| 国内服务器友好（合规 + 备案） | ✓ | 部分 | 部分 | 部分 |
+| 现代技术栈（TypeScript + Next.js） | ✓ | × | ✓ | × |
+| 完全免费开源 | ✓ | ✓ | ✓ | 部分 |
+
+## 技术栈
+
+| 层 | 技术 |
+|---|---|
+| 后端 | NestJS · TypeScript · PostgreSQL · Redis · Prisma |
+| 前台 | Next.js · React · Tailwind CSS |
+| 后台 | Next.js · React · shadcn/ui · Lucide |
+| 部署 | Docker · Caddy（自动 HTTPS） · Portainer |
+| 共享类型 | `@bangnicms/shared-types` 统一前后端契约 |
+
+## 开源协议
+
+[MIT License](https://github.com/miaochi998/BangNiCMS/blob/main/LICENSE) — 商用免费、可修改、可分发。
+
+## 接下来
+
+<CardGrid>
+  <Card title="先看核心概念" icon="information">
+    花 5 分钟了解站点 / 语言 / 内容类型 / 主题 / 插件 / 模型这些贯穿全站的术语。
+    [核心概念 →](/docs/intro/core-concepts)
+  </Card>
+  <Card title="想立即试试" icon="rocket">
+    跟随 5 分钟体验路径在演示环境里点点看，无需准备服务器。
+    [快速体验 →](/docs/intro/quick-start)
+  </Card>
+  <Card title="准备真上线" icon="external">
+    服务器、域名、备案、Portainer、安装向导一步步带你部署到生产。
+    [部署上线 →](/docs/deploy/server-and-domain)
+  </Card>
+</CardGrid>

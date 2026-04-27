@@ -1,0 +1,193 @@
+---
+title: 5 分钟快速体验
+description: 不用买服务器，在本地跑一个 BangNiCMS 实例，5 分钟内点完它的核心功能
+---
+
+import { Aside, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+本文目标：让你**用 5 分钟时间**在自己的电脑上把 BangNiCMS 跑起来，体验核心功能（多语言、内容管理、主题、扩展中心、询盘、AI 助手等），决定它是否适合你。
+
+<Aside type="tip">
+体验完成后才决定是否真正部署到 VPS。生产部署请走 [部署上线](/docs/deploy/server-and-domain) 章节。
+</Aside>
+
+## 你需要什么
+
+- **一台 macOS / Linux / WSL2 电脑**（Windows 原生暂未稳定支持）
+- **Docker Desktop 已安装**且正在运行
+- **Node.js 20+** 与 **pnpm 9+**（用于本地开发模式）
+- 大约 5 GB 磁盘空间（postgres + redis + 镜像 + 依赖）
+
+## 体验路径选择
+
+<Tabs>
+<TabItem label="路径 A：克隆仓库本地跑（推荐）" icon="rocket">
+
+适合**愿意本地起服务**的开发者，你可以直接看到全部源码并修改测试。
+
+<Steps>
+
+1. **克隆仓库**
+
+   ```bash
+   git clone https://github.com/miaochi998/BangNiCMS.git
+   cd BangNiCMS
+   ```
+
+2. **复制环境变量**
+
+   ```bash
+   cp .env.example .env
+   cp infra/docker/.env.docker.example infra/docker/.env.docker
+   ```
+
+   `.env` 中的默认值已经可以直接体验，无需修改。
+
+3. **启动整套服务**
+
+   ```bash
+   pnpm install
+   pnpm restart:local
+   ```
+
+   这一条命令会顺序完成：
+   - 启动 Docker 依赖（Postgres / Redis）
+   - bootstrap shadow database
+   - `pnpm prisma:generate`
+   - `pnpm prisma:migrate:deploy`
+   - `pnpm prisma:seed`（导入示例数据）
+   - 启动 server / web / admin
+   - 健康检查（`GET /health` + `GET /health/dependencies`）
+
+   首次启动约 2-5 分钟，全部服务就绪后会看到 ✓ 标记。
+
+4. **打开浏览器**
+
+   | 服务 | 默认地址 |
+   |---|---|
+   | 前台 | http://localhost:6533 |
+   | 后台 | http://localhost:6534 |
+   | server API | http://localhost:6532 |
+
+   <Aside type="caution">
+   端口由 `.env` 中的 `BANGNICMS_WEB_PORT` / `BANGNICMS_ADMIN_PORT` / `BANGNICMS_SERVER_PORT` 控制，
+   如果你的环境冲突可自行修改，**不要硬编码**。
+   </Aside>
+
+5. **使用 seed 用户登录后台**
+
+   默认 seed 用户名 `admin` / 密码 `admin123`（**仅本地体验用，生产部署务必创建新管理员**）。
+
+</Steps>
+
+</TabItem>
+<TabItem label="路径 B：用 Portainer 跑生产镜像" icon="seti:docker">
+
+适合**已经有 VPS** 或**想看生产形态**的用户。流程与生产部署完全一致，只是先在本地或测试机上跑。
+
+请直接跳到 [Portainer 一键部署](/docs/deploy/portainer-deploy) 章节。
+
+</TabItem>
+</Tabs>
+
+## 5 分钟必点路径
+
+服务起来后，请按这个顺序点一遍后台，体验最有代表性的能力：
+
+<Steps>
+
+1. **「工作台」看仪表板**
+
+   首次登录默认进入工作台，能看到：
+   - 文章 / 产品 / 下载 / 页面 / 询盘 / 媒体 / 用户 7 类计数
+   - 待翻译队列摘要
+   - 最近询盘
+   - 最近 7 天访问量趋势
+
+2. **「语言管理」体验多语言完成度**
+
+   seed 默认启用 `zh-CN`（默认）和 `en-US` 两个语言。打开后能看到：
+   - 4 类内容（产品/文章/下载/页面）的**完成度进度条**
+   - **待翻译内容摘要**（有未翻译条目时显示）
+   - 每条都可一键跳到对应编辑页
+
+3. **「文章管理」查看 seed 文章**
+
+   seed 默认有 3 篇文章：1 篇完整双语 + 1 篇仅默认语言 + 1 篇草稿。
+   打开任意一篇编辑页：
+   - 上方语言切换 Tab：`zh-CN` / `en-US`
+   - 状态切换：草稿 / 已发布
+   - SEO 元信息字段（标题模板 / 描述 / 关键词）
+
+4. **「扩展中心」看主题**
+
+   seed 自带 **`official-site` 内置主题**。点进去能看到：
+   - 主题配置项（primaryColor / heroLayout 等）
+   - "主题配置"折叠组（如果该主题声明了 panels）
+
+5. **「询盘管理」查看示例询盘**
+
+   seed 有 6 条示例询盘，覆盖 3 种来源（产品 / 文章 / 下载）：
+   - 摘要卡片：4 个状态计数
+   - 状态 + 类型筛选
+   - 详情侧栏（查看 / 切状态 / 删除）
+   - CSV 导出按钮
+
+6. **打开前台 http://localhost:6533**
+
+   能看到 seed 数据驱动的前台：
+   - 首页（菜单驱动 6 个链接）
+   - `/products` 产品列表
+   - 任一产品详情底部的**询盘表单**
+   - 右上角**语言切换**
+
+</Steps>
+
+## 常见疑问
+
+### 我该用 macOS / Linux 哪个？
+
+两者都可。Linux 性能略好（无 Docker Desktop 虚拟化层）；macOS 开发体验更顺。
+
+### 端口被占了怎么办？
+
+修改 `.env` 中的端口环境变量：
+
+```bash
+BANGNICMS_SERVER_PORT=7000
+BANGNICMS_WEB_PORT=7001
+BANGNICMS_ADMIN_PORT=7002
+```
+
+然后 `pnpm restart:local` 重启。
+
+### 怎么停止？
+
+```bash
+pnpm restart:local:stop
+```
+
+会优雅关闭 server / web / admin 与 Postgres / Redis 容器。
+
+### 数据存在哪？
+
+- Postgres 数据：`infra/docker/data/postgres/`
+- 上传文件：`storage/uploads/`
+- 运行时日志：`storage/runtime/logs/`
+
+如要清空重来：`pnpm restart:local:stop` → 删除 `infra/docker/data/postgres/` → `pnpm restart:local`。
+
+### 可以直接修改源码看效果吗？
+
+可以。Next.js 与 NestJS 都开了热加载：
+- 改 `apps/web/**` 立即生效
+- 改 `apps/admin/**` 立即生效
+- 改 `apps/server/**` 自动重启 server
+
+## 接下来
+
+体验过觉得不错？
+
+- [**核心概念**](/docs/intro/core-concepts) — 把刚才点过的功能在术语上对齐
+- [**部署上线**](/docs/deploy/server-and-domain) — 准备一台 VPS 把它真上线
+- [**扩展市场**](/extensions) — 看看官方与社区的主题 / 插件 / 模型包

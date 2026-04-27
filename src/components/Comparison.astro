@@ -1,4 +1,5 @@
 ---
+import Icon from "./Icon.astro";
 const products = ["BangNiCMS", "WordPress", "Strapi", "Ghost"];
 
 type Cell = "yes" | "partial" | "no";
@@ -20,9 +21,9 @@ const rows: Row[] = [
 ];
 
 const cellMap = {
-  yes: { glyph: "✓", label: "支持", className: "text-emerald-500" },
-  partial: { glyph: "△", label: "部分支持", className: "text-amber-500" },
-  no: { glyph: "✗", label: "不支持", className: "text-slate-400 dark:text-slate-600" },
+  yes:     { icon: "check",  label: "支持",     className: "text-slate-900 dark:text-white" },
+  partial: { icon: "minus",  label: "部分支持", className: "text-slate-500 dark:text-slate-400" },
+  no:      { icon: "x",      label: "不支持",   className: "text-slate-300 dark:text-slate-600" },
 } as const;
 ---
 
@@ -84,13 +85,15 @@ const cellMap = {
                   const cell = cellMap[v];
                   return (
                     <td
-                      class={`px-6 py-4 text-center text-lg font-bold ${cell.className} ${
+                      class={`px-6 py-4 text-center ${cell.className} ${
                         vi === 0 ? "bg-brand-50/40 dark:bg-brand-500/5" : ""
                       }`}
                       title={cell.label}
                       aria-label={`${products[vi]} ${cell.label}`}
                     >
-                      {cell.glyph}
+                      <span class="inline-flex h-6 w-6 items-center justify-center">
+                        <Icon name={cell.icon} class="h-4 w-4" weight={2.5} />
+                      </span>
                     </td>
                   );
                 })}
@@ -115,7 +118,9 @@ const cellMap = {
                 return (
                   <div class="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2 dark:bg-white/5">
                     <span class="text-slate-600 dark:text-slate-400">{products[vi]}</span>
-                    <span class={`font-bold ${cell.className}`}>{cell.glyph}</span>
+                    <span class={cell.className}>
+                      <Icon name={cell.icon} class="h-4 w-4" weight={2.5} />
+                    </span>
                   </div>
                 );
               })}
@@ -128,13 +133,13 @@ const cellMap = {
     <!-- 图例 -->
     <div class="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-slate-500 dark:text-slate-400">
       <span class="flex items-center gap-1.5">
-        <span class="font-bold text-emerald-500">✓</span> 支持
+        <Icon name="check" class="h-3.5 w-3.5 text-slate-900 dark:text-white" weight={2.5} /> 支持
       </span>
       <span class="flex items-center gap-1.5">
-        <span class="font-bold text-amber-500">△</span> 部分支持
+        <Icon name="minus" class="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" weight={2.5} /> 部分支持
       </span>
       <span class="flex items-center gap-1.5">
-        <span class="font-bold text-slate-400 dark:text-slate-600">✗</span> 不支持
+        <Icon name="x" class="h-3.5 w-3.5 text-slate-300 dark:text-slate-600" weight={2.5} /> 不支持
       </span>
     </div>
   </div>

@@ -1,4 +1,5 @@
 ---
+import Icon from "./Icon.astro";
 const currentYear = new Date().getFullYear();
 
 const groups = [
@@ -92,7 +93,11 @@ const groups = [
           ICP 备案号待补充
         </a>
         <span aria-hidden="true">·</span>
-        <span>Made with ☕ in China</span>
+        <span class="inline-flex items-center gap-1">
+          Made with
+          <Icon name="heart" class="h-3 w-3" />
+          in China
+        </span>
       </p>
     </div>
   </div>

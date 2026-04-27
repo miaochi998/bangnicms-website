@@ -20,6 +20,7 @@ export const registryEntries: RegistryEntry[] = [
   {
     slug: "theme-business-pro",
     category: "theme",
+    iconKey: "building",
     iconEmoji: "🏢",
     coverGradient: "from-sky-500 to-indigo-600",
     screenshots: [
@@ -173,6 +174,7 @@ export const registryEntries: RegistryEntry[] = [
   {
     slug: "theme-blog-minimal",
     category: "theme",
+    iconKey: "file-text",
     iconEmoji: "📝",
     coverGradient: "from-slate-700 to-slate-900",
     screenshots: [
@@ -303,6 +305,7 @@ export const registryEntries: RegistryEntry[] = [
   {
     slug: "plugin-seo-toolkit",
     category: "plugin",
+    iconKey: "search-check",
     iconEmoji: "🔍",
     coverGradient: "from-emerald-500 to-teal-600",
     screenshots: [
@@ -358,7 +361,7 @@ export const registryEntries: RegistryEntry[] = [
       ],
       features: [
         {
-          icon: "🗺️",
+          icon: "map",
           title: "Sitemap 自动生成",
           summary: "安装后立即提供 /sitemap.xml，含多语言 hreflang。",
           details: [
@@ -368,7 +371,7 @@ export const registryEntries: RegistryEntry[] = [
           ],
         },
         {
-          icon: "🎯",
+          icon: "target",
           title: "结构化数据 (JSON-LD)",
           summary: "文章 / 产品 / 首页 自动注入合适 schema。",
           details: [
@@ -378,7 +381,7 @@ export const registryEntries: RegistryEntry[] = [
           ],
         },
         {
-          icon: "📊",
+          icon: "bar-chart",
           title: "实时 SEO 评分",
           summary: "在编辑器侧栏看到 0-100 分与优化建议。",
           details: [
@@ -388,7 +391,7 @@ export const registryEntries: RegistryEntry[] = [
           ],
         },
         {
-          icon: "🚫",
+          icon: "ban",
           title: "404 监控与跳转",
           summary: "后台面板看到所有 404 访问，一键设置 301 重定向。",
           details: [
@@ -398,7 +401,7 @@ export const registryEntries: RegistryEntry[] = [
           ],
         },
         {
-          icon: "🔗",
+          icon: "link",
           title: "Open Graph + Twitter Card",
           summary: "社交分享时自动呈现高质量预览卡片。",
           details: [
@@ -408,7 +411,7 @@ export const registryEntries: RegistryEntry[] = [
           ],
         },
         {
-          icon: "🔍",
+          icon: "search",
           title: "内部搜索优化",
           summary: "重写后台搜索逻辑，支持中文分词与同义词。",
           details: [
@@ -493,6 +496,7 @@ export const registryEntries: RegistryEntry[] = [
   {
     slug: "model-product-reviews",
     category: "model",
+    iconKey: "message-square",
     iconEmoji: "⭐",
     coverGradient: "from-amber-500 to-orange-600",
     screenshots: [

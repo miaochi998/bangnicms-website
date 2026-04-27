@@ -233,8 +233,10 @@ export interface RegistryEntry {
   slug: string;
   /** 类型分组：主题 / 插件 / 模型包 */
   category: RegistryCategory;
-  /** 卡片用 emoji 图标（兜底，无需 CDN） */
-  iconEmoji: string;
+  /** 单色 stroke 图标 key（对应 src/components/Icon.astro 中的 name） */
+  iconKey: string;
+  /** 卡片用 emoji 图标（已废弃，仅向后兼容；新代码请用 iconKey） */
+  iconEmoji?: string;
   /** 详情页 Hero 渐变色（Tailwind from/to 类） */
   coverGradient: string;
   /** 截图组（详情页用） */
@@ -286,7 +288,7 @@ export interface RegistryIndex {
 export interface RegistrySummary {
   slug: string;
   category: RegistryCategory;
-  iconEmoji: string;
+  iconKey: string;
   name: string;
   description: string;
   author: string;
@@ -312,7 +314,7 @@ export function toRegistrySummary(entry: RegistryEntry): RegistrySummary {
   return {
     slug: entry.slug,
     category: entry.category,
-    iconEmoji: entry.iconEmoji,
+    iconKey: entry.iconKey,
     name: m.name,
     description,
     author,

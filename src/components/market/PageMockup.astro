@@ -1,0 +1,268 @@
+---
+/**
+ * 插画式页面占位图：用纯 SVG/HTML 块绘制不同布局的"网页缩略图"
+ *
+ * 不依赖任何外部图片，可控、可缓存、暗模式适配。
+ *
+ * @prop layout 布局类型（决定排版结构）
+ * @prop palette 5 色调色板（取自主题配色，让占位图视觉与主题匹配）
+ * @prop label 占位图右上角的小标签（如 "首页"）
+ */
+interface Props {
+  layout:
+    | "marketing-home"
+    | "product-grid"
+    | "product-detail"
+    | "article-list"
+    | "article-detail"
+    | "about"
+    | "contact"
+    | "dashboard";
+  palette: string[]; // 5 色
+  label?: string;
+}
+
+const { layout, palette, label } = Astro.props;
+
+// 调色板兜底
+const c = palette.length >= 5 ? palette : ["#0EA5E9", "#0284C7", "#F59E0B", "#1E293B", "#F8FAFC"];
+const [primary, secondary, accent, dark, bg] = c;
+---
+
+<div
+  class="relative aspect-[16/10] w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-white/10"
+  style={`background:${bg};`}
+>
+  <!-- 顶部浏览器栏 -->
+  <div class="absolute inset-x-0 top-0 flex items-center gap-1.5 border-b border-slate-200/60 bg-slate-50/80 px-3 py-2 backdrop-blur-sm dark:border-white/10 dark:bg-slate-900/40">
+    <span class="h-2.5 w-2.5 rounded-full bg-rose-400/80"></span>
+    <span class="h-2.5 w-2.5 rounded-full bg-amber-400/80"></span>
+    <span class="h-2.5 w-2.5 rounded-full bg-emerald-400/80"></span>
+    <span class="ml-3 h-3.5 flex-1 rounded bg-white/80 dark:bg-slate-800/60"></span>
+  </div>
+
+  {label && (
+    <span
+      class="absolute right-3 top-3 z-20 inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase ring-1 ring-inset"
+      style={`background:${primary}1A;color:${primary};border-color:${primary}33;`}
+    >
+      {label}
+    </span>
+  )}
+
+  <!-- 内容区（视布局类型变化） -->
+  <div class="absolute inset-x-0 bottom-0 top-9">
+    {layout === "marketing-home" && (
+      <div class="flex h-full flex-col">
+        <!-- header -->
+        <div class="flex items-center justify-between px-4 py-2">
+          <span class="h-3 w-12 rounded" style={`background:${primary};`}></span>
+          <div class="flex gap-2">
+            <span class="h-2 w-8 rounded bg-slate-300/60 dark:bg-white/15"></span>
+            <span class="h-2 w-8 rounded bg-slate-300/60 dark:bg-white/15"></span>
+            <span class="h-2 w-8 rounded bg-slate-300/60 dark:bg-white/15"></span>
+          </div>
+        </div>
+        <!-- hero -->
+        <div class="mx-4 mt-1 grid flex-1 grid-cols-2 gap-3 rounded-lg p-3" style={`background:linear-gradient(135deg, ${primary}1A, ${secondary}1A);`}>
+          <div class="flex flex-col justify-center gap-2">
+            <span class="h-2.5 w-3/4 rounded" style={`background:${dark};`}></span>
+            <span class="h-2.5 w-1/2 rounded" style={`background:${dark};`}></span>
+            <span class="mt-1 h-1.5 w-full rounded bg-slate-300/50 dark:bg-white/15"></span>
+            <span class="h-1.5 w-5/6 rounded bg-slate-300/50 dark:bg-white/15"></span>
+            <span class="mt-1.5 inline-block h-5 w-16 rounded" style={`background:${accent};`}></span>
+          </div>
+          <div class="rounded" style={`background:${primary}33;`}></div>
+        </div>
+        <!-- 产品矩阵 -->
+        <div class="mx-4 my-3 grid grid-cols-3 gap-2">
+          <span class="aspect-[4/3] rounded" style={`background:${primary}26;`}></span>
+          <span class="aspect-[4/3] rounded" style={`background:${secondary}26;`}></span>
+          <span class="aspect-[4/3] rounded" style={`background:${primary}26;`}></span>
+        </div>
+      </div>
+    )}
+
+    {layout === "product-grid" && (
+      <div class="flex h-full">
+        <!-- 侧栏 -->
+        <div class="flex w-1/4 flex-col gap-1.5 border-r border-slate-200/60 px-3 py-3 dark:border-white/10">
+          <span class="h-2 w-3/4 rounded" style={`background:${primary};`}></span>
+          <span class="h-1.5 w-full rounded bg-slate-300/60 dark:bg-white/15"></span>
+          <span class="h-1.5 w-5/6 rounded bg-slate-300/60 dark:bg-white/15"></span>
+          <span class="h-1.5 w-full rounded bg-slate-300/60 dark:bg-white/15"></span>
+          <span class="mt-2 h-2 w-2/3 rounded bg-slate-400/40 dark:bg-white/20"></span>
+          <span class="h-1.5 w-full rounded bg-slate-300/60 dark:bg-white/15"></span>
+          <span class="h-1.5 w-4/5 rounded bg-slate-300/60 dark:bg-white/15"></span>
+        </div>
+        <!-- 网格 -->
+        <div class="flex flex-1 flex-col px-3 py-3">
+          <div class="mb-2 flex items-center justify-between">
+            <span class="h-2 w-20 rounded bg-slate-400/40 dark:bg-white/20"></span>
+            <span class="h-4 w-12 rounded" style={`background:${accent}66;`}></span>
+          </div>
+          <div class="grid flex-1 grid-cols-3 grid-rows-2 gap-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div class="overflow-hidden rounded">
+                <div class="aspect-[4/3]" style={`background:${i % 2 === 0 ? primary : secondary}26;`}></div>
+                <div class="mt-1 h-1.5 w-3/4 rounded bg-slate-300/60 dark:bg-white/15"></div>
+                <div class="mt-1 h-1.5 w-1/2 rounded" style={`background:${primary};`}></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )}
+
+    {layout === "product-detail" && (
+      <div class="grid h-full grid-cols-2 gap-3 p-4">
+        <div class="flex flex-col gap-2">
+          <div class="aspect-[4/3] rounded-lg" style={`background:${primary}26;`}></div>
+          <div class="grid grid-cols-4 gap-1">
+            <span class="aspect-square rounded" style={`background:${primary}33;`}></span>
+            <span class="aspect-square rounded" style={`background:${primary}1A;`}></span>
+            <span class="aspect-square rounded" style={`background:${primary}1A;`}></span>
+            <span class="aspect-square rounded" style={`background:${primary}1A;`}></span>
+          </div>
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <span class="h-3 w-3/4 rounded" style={`background:${dark};`}></span>
+          <span class="h-2 w-1/2 rounded bg-slate-400/40 dark:bg-white/20"></span>
+          <div class="mt-2 space-y-1">
+            <span class="block h-1.5 w-full rounded bg-slate-300/60 dark:bg-white/15"></span>
+            <span class="block h-1.5 w-5/6 rounded bg-slate-300/60 dark:bg-white/15"></span>
+            <span class="block h-1.5 w-4/5 rounded bg-slate-300/60 dark:bg-white/15"></span>
+          </div>
+          <div class="mt-3 grid grid-cols-2 gap-1.5">
+            <span class="h-1.5 rounded bg-slate-300/60 dark:bg-white/15"></span>
+            <span class="h-1.5 rounded bg-slate-300/60 dark:bg-white/15"></span>
+            <span class="h-1.5 rounded bg-slate-300/60 dark:bg-white/15"></span>
+            <span class="h-1.5 rounded bg-slate-300/60 dark:bg-white/15"></span>
+          </div>
+          <span class="mt-auto inline-block h-6 w-24 rounded" style={`background:${accent};`}></span>
+        </div>
+      </div>
+    )}
+
+    {layout === "article-list" && (
+      <div class="flex h-full flex-col px-6 py-3">
+        <div class="mb-2 h-3 w-1/3 rounded" style={`background:${dark};`}></div>
+        <div class="flex flex-1 flex-col gap-3">
+          {Array.from({ length: 4 }).map(() => (
+            <div class="border-b border-slate-200/60 pb-2 dark:border-white/10">
+              <span class="block h-2 w-2/3 rounded" style={`background:${dark};`}></span>
+              <div class="mt-1 space-y-1">
+                <span class="block h-1.5 w-full rounded bg-slate-300/60 dark:bg-white/15"></span>
+                <span class="block h-1.5 w-5/6 rounded bg-slate-300/60 dark:bg-white/15"></span>
+              </div>
+              <div class="mt-1 flex items-center gap-2">
+                <span class="h-1 w-12 rounded bg-slate-400/30 dark:bg-white/10"></span>
+                <span class="h-1 w-8 rounded bg-slate-400/30 dark:bg-white/10"></span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {layout === "article-detail" && (
+      <div class="mx-auto flex h-full max-w-md flex-col px-6 py-3">
+        <span class="h-3 w-3/4 rounded" style={`background:${dark};`}></span>
+        <span class="mt-1 h-1.5 w-1/4 rounded bg-slate-400/40 dark:bg-white/20"></span>
+        <div class="mt-3 space-y-1.5">
+          <span class="block h-1.5 w-full rounded bg-slate-300/60 dark:bg-white/15"></span>
+          <span class="block h-1.5 w-full rounded bg-slate-300/60 dark:bg-white/15"></span>
+          <span class="block h-1.5 w-5/6 rounded bg-slate-300/60 dark:bg-white/15"></span>
+          <span class="block h-1.5 w-full rounded bg-slate-300/60 dark:bg-white/15"></span>
+          <span class="block h-1.5 w-4/5 rounded bg-slate-300/60 dark:bg-white/15"></span>
+        </div>
+        <div class="mt-3 rounded p-2" style={`background:${dark}10;`}>
+          <span class="block h-1 w-full rounded bg-slate-400/40 dark:bg-white/15"></span>
+          <span class="mt-0.5 block h-1 w-5/6 rounded bg-slate-400/40 dark:bg-white/15"></span>
+          <span class="mt-0.5 block h-1 w-3/4 rounded bg-slate-400/40 dark:bg-white/15"></span>
+        </div>
+        <div class="mt-2 space-y-1.5">
+          <span class="block h-1.5 w-full rounded bg-slate-300/60 dark:bg-white/15"></span>
+          <span class="block h-1.5 w-3/4 rounded bg-slate-300/60 dark:bg-white/15"></span>
+        </div>
+      </div>
+    )}
+
+    {layout === "about" && (
+      <div class="flex h-full flex-col px-4 py-3">
+        <div class="grid flex-1 grid-cols-5 gap-3">
+          <div class="col-span-3 flex flex-col gap-1.5">
+            <span class="h-3 w-2/3 rounded" style={`background:${dark};`}></span>
+            <span class="mt-1 h-1.5 w-full rounded bg-slate-300/60 dark:bg-white/15"></span>
+            <span class="h-1.5 w-5/6 rounded bg-slate-300/60 dark:bg-white/15"></span>
+            <span class="h-1.5 w-full rounded bg-slate-300/60 dark:bg-white/15"></span>
+            <span class="h-1.5 w-3/4 rounded bg-slate-300/60 dark:bg-white/15"></span>
+          </div>
+          <div class="col-span-2 rounded-lg" style={`background:${primary}26;`}></div>
+        </div>
+        <div class="mt-3 grid grid-cols-4 gap-2">
+          {Array.from({ length: 4 }).map(() => (
+            <div class="flex flex-col items-center gap-1 rounded p-2" style={`background:${bg === '#FFFFFF' ? '#F8FAFC' : bg};border:1px solid ${dark}1A;`}>
+              <span class="h-3 w-3 rounded-full" style={`background:${primary};`}></span>
+              <span class="h-1 w-3/4 rounded bg-slate-300/60 dark:bg-white/15"></span>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {layout === "contact" && (
+      <div class="grid h-full grid-cols-2 gap-3 p-4">
+        <div class="flex flex-col gap-2">
+          <span class="h-3 w-1/2 rounded" style={`background:${dark};`}></span>
+          <div class="space-y-1">
+            <div class="flex items-center gap-1.5">
+              <span class="h-2 w-2 rounded-full" style={`background:${primary};`}></span>
+              <span class="h-1.5 w-2/3 rounded bg-slate-300/60 dark:bg-white/15"></span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="h-2 w-2 rounded-full" style={`background:${primary};`}></span>
+              <span class="h-1.5 w-3/5 rounded bg-slate-300/60 dark:bg-white/15"></span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="h-2 w-2 rounded-full" style={`background:${primary};`}></span>
+              <span class="h-1.5 w-3/4 rounded bg-slate-300/60 dark:bg-white/15"></span>
+            </div>
+          </div>
+          <div class="mt-1 flex-1 rounded" style={`background:${primary}1A;`}></div>
+        </div>
+        <div class="flex flex-col gap-1.5 rounded-lg p-2" style={`background:${dark}08;border:1px solid ${dark}1A;`}>
+          <span class="h-1.5 w-1/2 rounded bg-slate-400/40 dark:bg-white/20"></span>
+          <span class="h-5 w-full rounded bg-white shadow-inner dark:bg-white/10"></span>
+          <span class="h-1.5 w-1/2 rounded bg-slate-400/40 dark:bg-white/20"></span>
+          <span class="h-5 w-full rounded bg-white shadow-inner dark:bg-white/10"></span>
+          <span class="h-1.5 w-1/2 rounded bg-slate-400/40 dark:bg-white/20"></span>
+          <span class="h-12 w-full rounded bg-white shadow-inner dark:bg-white/10"></span>
+          <span class="mt-auto inline-block h-5 w-20 rounded" style={`background:${accent};`}></span>
+        </div>
+      </div>
+    )}
+
+    {layout === "dashboard" && (
+      <div class="flex h-full">
+        <div class="flex w-1/5 flex-col gap-1.5 border-r border-slate-200/60 p-2 dark:border-white/10" style={`background:${dark}05;`}>
+          <span class="h-2 w-3/4 rounded" style={`background:${primary};`}></span>
+          {Array.from({ length: 5 }).map(() => (
+            <span class="h-1.5 w-full rounded bg-slate-300/60 dark:bg-white/15"></span>
+          ))}
+        </div>
+        <div class="flex flex-1 flex-col gap-2 p-2">
+          <div class="grid grid-cols-3 gap-2">
+            {Array.from({ length: 3 }).map(() => (
+              <div class="rounded p-1.5" style={`background:${primary}1A;`}>
+                <span class="block h-2 w-1/2 rounded" style={`background:${primary};`}></span>
+                <span class="mt-1 block h-1 w-3/4 rounded bg-slate-300/60 dark:bg-white/15"></span>
+              </div>
+            ))}
+          </div>
+          <div class="flex-1 rounded p-2" style={`background:${dark}08;`}></div>
+        </div>
+      </div>
+    )}
+  </div>
+</div>

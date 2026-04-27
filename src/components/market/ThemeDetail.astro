@@ -1,0 +1,513 @@
+---
+/**
+ * 主题详情页模板：以"浏览者视角"为核心
+ *
+ * 信息架构：
+ *   1. Hero 区          —— 标题 + tagline + 设计调性 + CTA
+ *   2. 设计语言         —— 调色板 + 字体定位
+ *   3. 包含的页面       —— 大量插画式 mockup（核心区）
+ *   4. 主要亮点         —— 4 个图标卡
+ *   5. 适合什么样的企业  —— 行业 / 规模 / 内容量
+ *   6. 安装后建议步骤    —— 3 步引导上手
+ *   7. 立即获取（CTA）   —— 下载 + 安装命令
+ *   8. 开发者信息（折叠）—— 标识符 / API 链接（藏起来不打扰）
+ */
+import PageMockup from "./PageMockup.astro";
+import type { RegistryEntry, ExtensionManifest } from "../../lib/registry-types";
+
+interface Props {
+  entry: RegistryEntry;
+}
+
+const { entry } = Astro.props;
+const m = entry.manifest as ExtensionManifest;
+const t = entry.themeInfo!;
+
+const statusMap: Record<string, { text: string; cls: string }> = {
+  stable: { text: "稳定版", cls: "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:ring-emerald-900/50" },
+  beta: { text: "Beta", cls: "bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:ring-amber-900/50" },
+  deprecated: { text: "已停用", cls: "bg-red-50 text-red-700 ring-red-200" },
+  "coming-soon": { text: "即将上线", cls: "bg-slate-100 text-slate-700 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700" },
+};
+
+const installCommand = `# 在 BangNiCMS 后台「扩展中心」上传安装
+# 或通过命令行：
+curl -X POST https://your-cms.com/api/2026-04/extensions/install \\
+  -F "file=@${m.extensionKey}-${m.version}.zip" \\
+  -H "Authorization: Bearer YOUR_TOKEN"`;
+
+const highlights = m.marketingMeta?.highlights ?? [];
+---
+
+<main>
+  <!-- ─────────────────────── 1. Hero ─────────────────────── -->
+  <section class="relative overflow-hidden border-b border-slate-200 dark:border-white/5">
+    <!-- 渐变背景 -->
+    <div class={`absolute inset-0 bg-gradient-to-br ${entry.coverGradient} opacity-95`}></div>
+    <!-- 网格装饰 -->
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:48px_48px]"></div>
+
+    <div class="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
+      <!-- 面包屑 -->
+      <div class="mb-8 flex items-center gap-2 text-sm text-white/80">
+        <a href="/extensions" class="transition-colors hover:text-white">扩展市场</a>
+        <span>/</span>
+        <span class="text-white">{m.name}</span>
+      </div>
+
+      <div class="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_420px] lg:items-center">
+        <!-- 左：标题 + 描述 + CTA -->
+        <div>
+          <!-- 类型徽章 + 状态 + 版本 -->
+          <div class="mb-5 flex flex-wrap items-center gap-2">
+            <span class="inline-flex items-center gap-1 rounded-md bg-white/15 px-2.5 py-1 text-xs font-medium text-white ring-1 ring-white/20 backdrop-blur-sm">
+              <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 2a14.5 14.5 0 0 0 0 20a14.5 14.5 0 0 0 0-20" /><path d="M2 12h20" /></svg>
+              主题
+            </span>
+            <span class={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${statusMap[entry.status].cls}`}>
+              {statusMap[entry.status].text}
+            </span>
+            <span class="text-sm text-white/70">v{m.version}</span>
+          </div>
+
+          <h1 class="text-4xl font-bold tracking-tight text-white sm:text-5xl">
+            {m.name}
+          </h1>
+          <p class="mt-5 max-w-xl text-lg leading-8 text-white/90">
+            {t.tagline}
+          </p>
+
+          <!-- 调性标签 -->
+          <div class="mt-6 flex flex-wrap gap-2">
+            {t.designTones.map((tone) => (
+              <span class="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/90 ring-1 ring-white/15 backdrop-blur-sm">
+                {tone}
+              </span>
+            ))}
+          </div>
+
+          <!-- CTA -->
+          <div class="mt-8 flex flex-wrap items-center gap-3">
+            <a
+              href={entry.downloadUrl}
+              class="inline-flex items-center gap-1.5 rounded-md bg-white px-5 py-2.5 text-sm font-medium text-slate-900 shadow-md transition-all hover:bg-slate-100"
+            >
+              <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+              免费下载
+            </a>
+            {t.liveDemoUrl && (
+              <a
+                href={t.liveDemoUrl}
+                target="_blank"
+                rel="noopener"
+                class="inline-flex items-center gap-1.5 rounded-md bg-white/10 px-5 py-2.5 text-sm font-medium text-white ring-1 ring-white/20 backdrop-blur-sm transition-all hover:bg-white/20"
+              >
+                <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
+                在线预览
+              </a>
+            )}
+          </div>
+
+          <!-- 元数据小标签 -->
+          <div class="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-white/70">
+            <span>by <strong class="font-semibold text-white">{m.author}</strong></span>
+            <span class="inline-flex items-center gap-1">
+              <svg viewBox="0 0 24 24" class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+              {entry.stats.installs.toLocaleString()} 次安装
+            </span>
+            <span class="inline-flex items-center gap-1">
+              <svg viewBox="0 0 24 24" class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+              {entry.stats.stars}
+            </span>
+            <span>更新于 {entry.updatedAt}</span>
+          </div>
+        </div>
+
+        <!-- 右：主题首页 mockup（用第一个 page 的 layout） -->
+        <div class="relative">
+          {t.pages[0] && (
+            <div class="rotate-1 transform shadow-2xl shadow-black/30 transition-transform hover:rotate-0">
+              <PageMockup
+                layout={t.pages[0].layout}
+                palette={t.palette.colors}
+                label={t.pages[0].name}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────── 2. 设计语言 ─────────────────── -->
+  <section class="border-b border-slate-200 bg-white dark:border-white/5 dark:bg-slate-950">
+    <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+      <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+        设计语言
+      </h2>
+      <p class="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
+        从配色到字体，每个细节都为你的品牌服务。
+      </p>
+
+      <div class="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <!-- 调色板 -->
+        <div class="rounded-xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-slate-900">
+          <div class="flex items-baseline justify-between">
+            <h3 class="text-base font-semibold text-slate-900 dark:text-white">配色方案</h3>
+            <span class="text-xs text-slate-500 dark:text-slate-500">{t.palette.name}</span>
+          </div>
+          <div class="mt-5 grid grid-cols-5 gap-2">
+            {t.palette.colors.map((color, idx) => {
+              const labels = ["主品牌色", "辅助色", "强调色", "深色文字", "底色"];
+              return (
+                <div>
+                  <div
+                    class="aspect-[3/4] rounded-lg ring-1 ring-inset ring-slate-200/50 dark:ring-white/10"
+                    style={`background:${color};`}
+                  ></div>
+                  <div class="mt-2">
+                    <div class="text-xs font-medium text-slate-900 dark:text-white">
+                      {labels[idx] ?? "—"}
+                    </div>
+                    <div class="mt-0.5 font-mono text-[10px] text-slate-500 dark:text-slate-500">
+                      {color}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <!-- 字体定位 -->
+        <div class="rounded-xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-slate-900">
+          <h3 class="text-base font-semibold text-slate-900 dark:text-white">字体规范</h3>
+          <div class="mt-5 space-y-4">
+            <div class="rounded-lg border border-slate-200 p-4 dark:border-white/10">
+              <div class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                这是标题样式
+              </div>
+              <div class="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                这是正文样式。中文字体经过精心调校，行距与字距都为长篇阅读优化。
+              </div>
+            </div>
+            <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+              {t.typography.map((item) => (
+                <li class="flex items-start gap-2">
+                  <span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-slate-400 dark:bg-slate-500"></span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── 3. 包含的页面（核心区） ─────────────── -->
+  <section class="border-b border-slate-200 bg-slate-50 dark:border-white/5 dark:bg-slate-900/30">
+    <div class="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
+      <div class="text-center">
+        <h2 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
+          包含的页面
+        </h2>
+        <p class="mx-auto mt-3 max-w-2xl text-base text-slate-600 dark:text-slate-400">
+          {t.pages.length} 套预置页面，覆盖企业站全部核心场景。
+        </p>
+      </div>
+
+      <div class="mt-14 space-y-20">
+        {t.pages.map((page, idx) => (
+          <div class={`grid grid-cols-1 items-center gap-10 lg:grid-cols-2 ${idx % 2 === 1 ? "lg:[&>*:first-child]:order-2" : ""}`}>
+            <!-- mockup -->
+            <div class="relative">
+              <div class="absolute -inset-4 -z-10 rounded-2xl bg-gradient-to-br from-slate-200/50 to-slate-100/50 blur-2xl dark:from-slate-800/30 dark:to-slate-700/20"></div>
+              <PageMockup
+                layout={page.layout}
+                palette={t.palette.colors}
+                label={page.name}
+              />
+            </div>
+
+            <!-- 文字 -->
+            <div>
+              <div class="inline-flex h-7 w-7 items-center justify-center rounded-md text-xs font-bold" style={`background:${t.palette.colors[0]}1A;color:${t.palette.colors[0]};`}>
+                {idx + 1}
+              </div>
+              <h3 class="mt-4 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
+                {page.name}
+              </h3>
+              <p class="mt-3 text-base leading-7 text-slate-600 dark:text-slate-300">
+                {page.caption}
+              </p>
+              <div class="mt-5">
+                <div class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-500">
+                  包含模块
+                </div>
+                <div class="mt-2 flex flex-wrap gap-1.5">
+                  {page.blocks.map((block) => (
+                    <span class="inline-flex items-center rounded-md bg-white px-2 py-1 text-xs text-slate-700 ring-1 ring-inset ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-white/10">
+                      {block}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────── 4. 主要亮点（图标卡） ──────────────── -->
+  {highlights.length > 0 && (
+    <section class="border-b border-slate-200 bg-white dark:border-white/5 dark:bg-slate-950">
+      <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+          主要亮点
+        </h2>
+        <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {highlights.map((h, i) => {
+            // Lucide 风格 stroke SVG（单色，使用 currentColor）
+            const iconPaths = [
+              // 闪电 zap
+              `<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>`,
+              // 靶心 target
+              `<circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle>`,
+              // 地球 globe
+              `<circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>`,
+              // 柱状图 bar-chart
+              `<line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line>`,
+            ];
+            const path = iconPaths[i] ?? `<circle cx="12" cy="12" r="10"></circle>`;
+            return (
+              <div class="rounded-xl border border-slate-200 bg-white p-5 transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-white/10 dark:bg-slate-900">
+                <div class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                  <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={path} />
+                </div>
+                <div class="mt-4 text-sm font-medium leading-relaxed text-slate-900 dark:text-white">
+                  {h}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- ─────────────── 5. 适合什么样的企业 ─────────────── -->
+  <section class="border-b border-slate-200 bg-slate-50 dark:border-white/5 dark:bg-slate-900/30">
+    <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+      <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+        适合什么样的企业
+      </h2>
+      <p class="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
+        如果你符合以下任意特征，这套主题应该能直接带你上手。
+      </p>
+
+      <div class="mt-8 grid grid-cols-1 gap-5 md:grid-cols-3">
+        <!-- 行业 -->
+        <div class="rounded-xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-slate-900">
+          <div class="flex items-center gap-2.5">
+            <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+              <svg viewBox="0 0 24 24" class="h-4.5 w-4.5" style="width:1.125rem;height:1.125rem;" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/>
+                <path d="M17 18h1"/><path d="M12 18h1"/><path d="M7 18h1"/>
+              </svg>
+            </span>
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-white">适合行业</h3>
+          </div>
+          <ul class="mt-4 space-y-1.5 text-sm text-slate-600 dark:text-slate-400">
+            {t.bestFor.industries.map((ind) => (
+              <li class="flex items-start gap-2">
+                <svg viewBox="0 0 24 24" class="mt-0.5 h-4 w-4 shrink-0 text-slate-500 dark:text-slate-500" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <span>{ind}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <!-- 规模 -->
+        <div class="rounded-xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-slate-900">
+          <div class="flex items-center gap-2.5">
+            <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+              <svg viewBox="0 0 24 24" style="width:1.125rem;height:1.125rem;" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </span>
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-white">企业规模</h3>
+          </div>
+          <p class="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-400">
+            {t.bestFor.scale}
+          </p>
+        </div>
+
+        <!-- 内容量 -->
+        <div class="rounded-xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-slate-900">
+          <div class="flex items-center gap-2.5">
+            <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+              <svg viewBox="0 0 24 24" style="width:1.125rem;height:1.125rem;" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                <line x1="12" y1="22.08" x2="12" y2="12"/>
+              </svg>
+            </span>
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-white">内容体量</h3>
+          </div>
+          <p class="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-400">
+            {t.bestFor.contentVolume}
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── 6. 安装后建议步骤 ─────────────── -->
+  <section class="border-b border-slate-200 bg-white dark:border-white/5 dark:bg-slate-950">
+    <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+      <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+        安装后这样做
+      </h2>
+      <p class="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
+        三步带你的站点上线。
+      </p>
+
+      <div class="mt-8 grid grid-cols-1 gap-5 md:grid-cols-3">
+        {t.setupSteps.map((step, i) => (
+          <div class="relative rounded-xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-slate-900">
+            <div class="absolute -top-3 left-6 inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold text-white" style={`background:${t.palette.colors[0]};`}>
+              {i + 1}
+            </div>
+            <h3 class="mt-2 text-base font-semibold text-slate-900 dark:text-white">
+              {step.title}
+            </h3>
+            <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">
+              {step.description}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── 7. 立即获取（CTA） ─────────────── -->
+  <section class="bg-slate-900 dark:bg-slate-950">
+    <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_400px] lg:items-center">
+        <div>
+          <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            准备好让你的站点焕然一新？
+          </h2>
+          <p class="mt-4 max-w-xl text-base text-slate-300">
+            立即下载 <strong class="font-semibold text-white">{m.name}</strong>，按 3 步部署到你的 BangNiCMS。
+          </p>
+          <div class="mt-6 flex flex-wrap items-center gap-3">
+            <a
+              href={entry.downloadUrl}
+              class="inline-flex items-center gap-1.5 rounded-md bg-white px-5 py-2.5 text-sm font-medium text-slate-900 shadow-md transition-all hover:bg-slate-100"
+            >
+              <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+              下载 .zip
+            </a>
+            {entry.documentationUrl && (
+              <a
+                href={entry.documentationUrl}
+                class="inline-flex items-center gap-1.5 rounded-md bg-white/10 px-5 py-2.5 text-sm font-medium text-white ring-1 ring-white/20 transition-all hover:bg-white/20"
+              >
+                阅读安装文档 →
+              </a>
+            )}
+          </div>
+        </div>
+
+        <!-- 安装命令卡 -->
+        <div class="rounded-xl border border-white/10 bg-slate-800/50 p-5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              命令行安装
+            </span>
+            <button
+              type="button"
+              id="theme-install-copy"
+              class="inline-flex items-center gap-1 rounded-md bg-white/10 px-2 py-1 text-[11px] font-medium text-slate-200 transition-colors hover:bg-white/20"
+              aria-label="复制命令"
+            >
+              <svg viewBox="0 0 24 24" class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+              <span id="theme-install-copy-text">复制</span>
+            </button>
+          </div>
+          <pre class="mt-3 overflow-x-auto rounded-md bg-slate-950 p-3 text-xs leading-5 text-slate-200"><code id="theme-install-cmd">{installCommand}</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── 8. 开发者信息（折叠区，藏起来不打扰） ─────────── -->
+  <section class="border-t border-slate-200 bg-white dark:border-white/5 dark:bg-slate-950">
+    <div class="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+      <details class="group">
+        <summary class="flex cursor-pointer items-center justify-between gap-2 text-sm text-slate-500 transition-colors hover:text-slate-900 dark:text-slate-500 dark:hover:text-slate-300">
+          <span class="inline-flex items-center gap-2">
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>
+            开发者信息
+          </span>
+          <svg viewBox="0 0 24 24" class="h-4 w-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </summary>
+        <div class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <div>
+            <div class="text-xs font-medium uppercase tracking-wide text-slate-500">标识符</div>
+            <div class="mt-1 font-mono text-xs text-slate-900 dark:text-white">{m.extensionKey}</div>
+          </div>
+          <div>
+            <div class="text-xs font-medium uppercase tracking-wide text-slate-500">首次发布</div>
+            <div class="mt-1 text-sm text-slate-900 dark:text-white">{entry.releasedAt}</div>
+          </div>
+          <div>
+            <div class="text-xs font-medium uppercase tracking-wide text-slate-500">仓库</div>
+            <div class="mt-1">
+              {entry.repositoryUrl ? (
+                <a href={entry.repositoryUrl} target="_blank" rel="noopener" class="text-sm text-brand-600 hover:underline dark:text-brand-400">GitHub →</a>
+              ) : <span class="text-sm text-slate-500">—</span>}
+            </div>
+          </div>
+          <div>
+            <div class="text-xs font-medium uppercase tracking-wide text-slate-500">JSON 元数据</div>
+            <a
+              href={`/api/v1/registry/extensions/${entry.slug}.json`}
+              class="mt-1 block break-all font-mono text-xs text-brand-600 hover:underline dark:text-brand-400"
+            >
+              /api/v1/registry/extensions/{entry.slug}.json
+            </a>
+          </div>
+        </div>
+      </details>
+    </div>
+  </section>
+</main>
+
+<script>
+  const btn = document.getElementById("theme-install-copy");
+  const cmd = document.getElementById("theme-install-cmd");
+  const txt = document.getElementById("theme-install-copy-text");
+  btn?.addEventListener("click", async () => {
+    if (!cmd) return;
+    try {
+      await navigator.clipboard.writeText(cmd.textContent ?? "");
+      if (txt) txt.textContent = "已复制";
+      setTimeout(() => {
+        if (txt) txt.textContent = "复制";
+      }, 1500);
+    } catch (err) {
+      console.error("Copy failed", err);
+    }
+  });
+</script>

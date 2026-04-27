@@ -3,6 +3,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
 import ThemeDetail from "../../components/market/ThemeDetail.astro";
+import PluginDetail from "../../components/market/PluginDetail.astro";
+import ModelDetail from "../../components/market/ModelDetail.astro";
 import LegacyDetail from "../../components/market/LegacyDetail.astro";
 import { registryEntries } from "../../registry/entries";
 
@@ -18,7 +20,10 @@ const m = entry.manifest;
 
 const description = "description" in m && m.description ? m.description : "";
 
-const useNewTemplate = entry.category === "theme" && entry.themeInfo;
+// 根据 category + 富信息可用性选择对应模板，否则 fallback 到 LegacyDetail
+const useTheme = entry.category === "theme" && entry.themeInfo;
+const usePlugin = entry.category === "plugin" && entry.pluginInfo;
+const useModel = entry.category === "model" && entry.modelInfo;
 ---
 
 <BaseLayout
@@ -27,7 +32,15 @@ const useNewTemplate = entry.category === "theme" && entry.themeInfo;
 >
   <Header slot="header" />
 
-  {useNewTemplate ? <ThemeDetail entry={entry} /> : <LegacyDetail entry={entry} />}
+  {useTheme ? (
+    <ThemeDetail entry={entry} />
+  ) : usePlugin ? (
+    <PluginDetail entry={entry} />
+  ) : useModel ? (
+    <ModelDetail entry={entry} />
+  ) : (
+    <LegacyDetail entry={entry} />
+  )}
 
   <Footer slot="footer" />
 </BaseLayout>

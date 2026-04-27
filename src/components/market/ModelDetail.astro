@@ -1,0 +1,444 @@
+---
+/**
+ * 模型详情页模板：以"字段结构 + 前后台样子 + 怎么用"为核心
+ *
+ * 信息架构：
+ *   1. Hero（标题 + tagline + appliesTo 徽章 + CTA）
+ *   2. 字段结构（fieldGroups 卡片组）
+ *   3. 安装后会变成什么样（后台 + 前台 mockup）
+ *   4. 填写示例（sampleEntry 表格）
+ *   5. 在主题里怎么用（themeUsageCode）
+ *   6. 卸载安全（uninstallSafety）
+ *   7. CTA 转化区
+ *   8. 开发者信息（折叠）
+ */
+import Icon from "../Icon.astro";
+import PageMockup from "./PageMockup.astro";
+import type { RegistryEntry, ModelPackageManifest } from "../../lib/registry-types";
+
+interface Props {
+  entry: RegistryEntry;
+}
+
+const { entry } = Astro.props;
+const m = entry.manifest as ModelPackageManifest;
+const md = entry.modelInfo!;
+
+const statusMap: Record<string, { text: string; cls: string }> = {
+  stable: { text: "稳定版", cls: "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:ring-emerald-900/50" },
+  beta: { text: "Beta", cls: "bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:ring-amber-900/50" },
+  deprecated: { text: "已停用", cls: "bg-red-50 text-red-700 ring-red-200" },
+  "coming-soon": { text: "即将上线", cls: "bg-slate-100 text-slate-700 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700" },
+};
+
+// 类型 badge 样式
+const typeStyles: Record<string, string> = {
+  text: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400",
+  number: "bg-violet-50 text-violet-700 dark:bg-violet-950/40 dark:text-violet-400",
+  boolean: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400",
+  json: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400",
+  image: "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400",
+  select: "bg-cyan-50 text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-400",
+  date: "bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400",
+};
+
+const installCommand = `# 在 BangNiCMS 后台「扩展中心 → 模型包」上传安装
+# 或通过命令行：
+curl -X POST https://your-cms.com/api/2026-04/model-packages/install \\
+  -F "file=@${m.packageKey}-${m.version}.zip" \\
+  -H "Authorization: Bearer YOUR_TOKEN"`;
+
+// 字段类型转中文
+const typeLabels: Record<string, string> = {
+  text: "文本",
+  number: "数字",
+  boolean: "布尔",
+  json: "JSON",
+  image: "图片",
+  select: "选项",
+  date: "日期",
+};
+
+// 调色板（用于 mockup）
+const palette = ["#F59E0B", "#EA580C", "#0EA5E9", "#1E293B", "#FFFBEB"];
+---
+
+<main>
+  <!-- ─────────────────── 1. Hero ─────────────────── -->
+  <section class="relative overflow-hidden border-b border-slate-200 dark:border-white/5">
+    <div class={`absolute inset-0 bg-gradient-to-br ${entry.coverGradient} opacity-95`}></div>
+    <div class="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:48px_48px]"></div>
+
+    <div class="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
+      <div class="mb-8 flex items-center gap-2 text-sm text-white/80">
+        <a href="/extensions" class="transition-colors hover:text-white">扩展市场</a>
+        <span>/</span>
+        <span class="text-white">{m.name}</span>
+      </div>
+
+      <div class="max-w-3xl">
+        <div class="mb-5 flex flex-wrap items-center gap-2">
+          <span class="inline-flex items-center gap-1.5 rounded-md bg-white/15 px-2.5 py-1 text-xs font-medium text-white ring-1 ring-white/20 backdrop-blur-sm">
+            <Icon name="database" class="h-3.5 w-3.5" />
+            模型包
+          </span>
+          <span class={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${statusMap[entry.status].cls}`}>
+            {statusMap[entry.status].text}
+          </span>
+          <span class="text-sm text-white/70">v{m.version}</span>
+          <span class="inline-flex items-center gap-1.5 rounded-md bg-white/10 px-2.5 py-1 text-xs font-medium text-white/90 ring-1 ring-white/15 backdrop-blur-sm">
+            适用于：{md.appliesTo}
+          </span>
+        </div>
+
+        <h1 class="text-4xl font-bold tracking-tight text-white sm:text-5xl">
+          {m.name}
+        </h1>
+        <p class="mt-5 max-w-xl text-lg leading-8 text-white/90">
+          {md.tagline}
+        </p>
+
+        <div class="mt-8 flex flex-wrap items-center gap-3">
+          <a
+            href={entry.downloadUrl}
+            class="inline-flex items-center gap-1.5 rounded-md bg-white px-5 py-2.5 text-sm font-medium text-slate-900 shadow-md transition-all hover:bg-slate-100"
+          >
+            <Icon name="download" class="h-4 w-4" weight={2.5} />
+            免费下载
+          </a>
+          {entry.documentationUrl && (
+            <a
+              href={entry.documentationUrl}
+              class="inline-flex items-center gap-1.5 rounded-md bg-white/10 px-5 py-2.5 text-sm font-medium text-white ring-1 ring-white/20 backdrop-blur-sm transition-all hover:bg-white/20"
+            >
+              <Icon name="external-link" class="h-4 w-4" weight={2.5} />
+              阅读文档
+            </a>
+          )}
+        </div>
+
+        <div class="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-white/70">
+          <span>by <strong class="font-semibold text-white">{m.author ?? "BangNiCMS Official"}</strong></span>
+          <span class="inline-flex items-center gap-1">
+            <Icon name="download" class="h-3 w-3" />
+            {entry.stats.installs.toLocaleString()} 次安装
+          </span>
+          <span class="inline-flex items-center gap-1">
+            <Icon name="star" class="h-3 w-3" />
+            {entry.stats.stars}
+          </span>
+          <span>更新于 {entry.updatedAt}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── 2. 字段结构（核心区） ─────────────── -->
+  <section class="border-b border-slate-200 bg-white dark:border-white/5 dark:bg-slate-950">
+    <div class="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
+      <div class="text-center">
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+          <Icon name="layers" class="h-3.5 w-3.5" />
+          字段结构
+        </span>
+        <h2 class="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
+          这个模型有什么字段？
+        </h2>
+        <p class="mx-auto mt-3 max-w-2xl text-base text-slate-600 dark:text-slate-400">
+          安装后这些字段会出现在 <strong class="font-semibold text-slate-900 dark:text-white">{md.appliesTo}</strong> 的编辑页中。
+        </p>
+      </div>
+
+      <div class="mt-12 space-y-6">
+        {md.fieldGroups.map((group) => (
+          <div class="overflow-hidden rounded-xl border border-slate-200 dark:border-white/10">
+            <!-- 分组标题 -->
+            <div class="border-b border-slate-200 bg-slate-50 px-6 py-4 dark:border-white/10 dark:bg-slate-900/50">
+              <h3 class="text-base font-semibold text-slate-900 dark:text-white">
+                {group.name}
+              </h3>
+              <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                {group.description}
+              </p>
+            </div>
+
+            <!-- 字段表 -->
+            <div class="divide-y divide-slate-200 dark:divide-white/10">
+              {group.fields.map((field) => (
+                <div class="grid grid-cols-1 gap-4 bg-white px-6 py-4 lg:grid-cols-[2fr_1fr_3fr] lg:items-start dark:bg-slate-950">
+                  <!-- 字段名 + 必填 -->
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <code class="rounded bg-slate-100 px-2 py-0.5 font-mono text-sm font-semibold text-slate-900 dark:bg-slate-800 dark:text-white">
+                        {field.key}
+                      </code>
+                      {field.required && (
+                        <span class="text-xs font-medium text-rose-600 dark:text-rose-400">必填</span>
+                      )}
+                    </div>
+                    <div class="mt-1.5 text-sm text-slate-700 dark:text-slate-300">
+                      {field.label}
+                    </div>
+                  </div>
+
+                  <!-- 类型 -->
+                  <div>
+                    <span class={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${typeStyles[field.type] ?? "bg-slate-100 text-slate-600"}`}>
+                      {typeLabels[field.type] ?? field.type}
+                    </span>
+                  </div>
+
+                  <!-- 说明 + 示例 -->
+                  <div>
+                    <div class="text-sm leading-6 text-slate-600 dark:text-slate-400">
+                      {field.description}
+                    </div>
+                    {field.example && (
+                      <div class="mt-2 rounded-md bg-slate-50 p-2 dark:bg-slate-900/50">
+                        <div class="mb-1 text-[10px] font-medium uppercase tracking-wide text-slate-400">示例</div>
+                        <code class="block break-all font-mono text-xs text-slate-700 dark:text-slate-300">
+                          {field.example}
+                        </code>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── 3. 安装后会变成什么样 ─────────────── -->
+  <section class="border-b border-slate-200 bg-slate-50 dark:border-white/5 dark:bg-slate-900/30">
+    <div class="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
+      <div class="text-center">
+        <h2 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
+          安装后会变成什么样
+        </h2>
+        <p class="mx-auto mt-3 max-w-2xl text-base text-slate-600 dark:text-slate-400">
+          字段会出现在后台编辑界面，主题会自动渲染到前台。
+        </p>
+      </div>
+
+      <div class="mt-12 grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <!-- 后台编辑界面 -->
+        <div>
+          <div class="mb-4 flex items-center gap-2">
+            <span class="inline-flex h-7 w-7 items-center justify-center rounded-md bg-slate-900 text-white dark:bg-white dark:text-slate-900">
+              <Icon name="layers" class="h-3.5 w-3.5" />
+            </span>
+            <h3 class="text-base font-semibold text-slate-900 dark:text-white">后台编辑界面</h3>
+          </div>
+          <PageMockup layout="dashboard" palette={palette} label="编辑器" />
+          <p class="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-400">
+            进入「内容 → {md.appliesTo}」，新增或编辑条目时会看到 <strong class="font-semibold text-slate-900 dark:text-white">{md.fieldGroups.length}</strong> 个新字段组，包含 {md.fieldGroups.reduce((s, g) => s + g.fields.length, 0)} 个字段。
+          </p>
+        </div>
+
+        <!-- 前台展示效果 -->
+        <div>
+          <div class="mb-4 flex items-center gap-2">
+            <span class="inline-flex h-7 w-7 items-center justify-center rounded-md bg-slate-900 text-white dark:bg-white dark:text-slate-900">
+              <Icon name="globe" class="h-3.5 w-3.5" />
+            </span>
+            <h3 class="text-base font-semibold text-slate-900 dark:text-white">前台展示效果</h3>
+          </div>
+          <PageMockup layout="product-detail" palette={palette} label="详情页" />
+          <p class="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-400">
+            主题模板可以直接读取这些字段。下方可见已经填好的样例数据是怎样在数据库里存储的。
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── 4. 填写示例 ─────────────── -->
+  <section class="border-b border-slate-200 bg-white dark:border-white/5 dark:bg-slate-950">
+    <div class="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
+      <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+        填写示例
+      </h2>
+      <p class="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
+        一份典型条目的字段值，安装后用作样例参考。
+      </p>
+
+      <div class="mt-8 overflow-hidden rounded-xl border border-slate-200 dark:border-white/10">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50 dark:bg-slate-900/50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">字段</th>
+              <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">值</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200 dark:divide-white/10">
+            {md.sampleEntry.map((s) => (
+              <tr class="bg-white dark:bg-slate-950">
+                <td class="px-6 py-3.5 align-top">
+                  <code class="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs font-semibold text-slate-900 dark:bg-slate-800 dark:text-white">
+                    {s.fieldKey}
+                  </code>
+                </td>
+                <td class="px-6 py-3.5 font-mono text-xs leading-6 text-slate-700 dark:text-slate-300">
+                  <span class="block break-all">{s.value}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── 5. 在主题里怎么用 ─────────────── -->
+  <section class="border-b border-slate-200 bg-slate-50 dark:border-white/5 dark:bg-slate-900/30">
+    <div class="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
+      <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+        在主题里怎么调用
+      </h2>
+      <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">
+        {md.themeUsageNote}
+      </p>
+
+      <div class="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-slate-950 dark:border-white/10">
+        <div class="flex items-center justify-between border-b border-white/10 px-4 py-2">
+          <span class="text-xs font-semibold uppercase tracking-wide text-slate-400">主题模板代码</span>
+          <button
+            type="button"
+            id="model-code-copy"
+            class="inline-flex items-center gap-1 rounded-md bg-white/10 px-2 py-1 text-[11px] font-medium text-slate-200 transition-colors hover:bg-white/20"
+          >
+            <Icon name="copy" class="h-3 w-3" />
+            <span id="model-code-copy-text">复制</span>
+          </button>
+        </div>
+        <pre class="overflow-x-auto p-4 text-xs leading-6 text-slate-200"><code id="model-code">{md.themeUsageCode}</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── 6. 卸载安全 ─────────────── -->
+  <section class="border-b border-slate-200 bg-white dark:border-white/5 dark:bg-slate-950">
+    <div class="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
+      <div class="rounded-xl border border-slate-200 bg-slate-50 p-6 dark:border-white/10 dark:bg-slate-900/30">
+        <div class="flex items-center gap-2.5">
+          <span class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900">
+            <Icon name="check" class="h-4 w-4" weight={2.5} />
+          </span>
+          <h2 class="text-lg font-semibold text-slate-900 dark:text-white">卸载安全说明</h2>
+        </div>
+        <ul class="mt-5 space-y-3 text-sm leading-7 text-slate-700 dark:text-slate-300">
+          {md.uninstallSafety.map((s) => (
+            <li class="flex items-start gap-2.5">
+              <Icon name="check" class="mt-1.5 h-3.5 w-3.5 shrink-0 text-slate-500" weight={2.5} />
+              <span>{s}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── 7. CTA 转化区 ─────────────── -->
+  <section class="bg-slate-900 dark:bg-slate-950">
+    <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_400px] lg:items-center">
+        <div>
+          <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            为你的 {md.appliesTo} 加上这些字段
+          </h2>
+          <p class="mt-4 max-w-xl text-base text-slate-300">
+            立即下载 <strong class="font-semibold text-white">{m.name}</strong>，扩展你的内容能力。
+          </p>
+          <div class="mt-6 flex flex-wrap items-center gap-3">
+            <a
+              href={entry.downloadUrl}
+              class="inline-flex items-center gap-1.5 rounded-md bg-white px-5 py-2.5 text-sm font-medium text-slate-900 shadow-md transition-all hover:bg-slate-100"
+            >
+              <Icon name="download" class="h-4 w-4" weight={2.5} />
+              下载 .zip
+            </a>
+            {entry.documentationUrl && (
+              <a
+                href={entry.documentationUrl}
+                class="inline-flex items-center gap-1.5 rounded-md bg-white/10 px-5 py-2.5 text-sm font-medium text-white ring-1 ring-white/20 transition-all hover:bg-white/20"
+              >
+                阅读文档 →
+              </a>
+            )}
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-white/10 bg-slate-800/50 p-5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wide text-slate-400">命令行安装</span>
+            <button
+              type="button"
+              id="model-install-copy"
+              class="inline-flex items-center gap-1 rounded-md bg-white/10 px-2 py-1 text-[11px] font-medium text-slate-200 transition-colors hover:bg-white/20"
+            >
+              <Icon name="copy" class="h-3 w-3" />
+              <span id="model-install-copy-text">复制</span>
+            </button>
+          </div>
+          <pre class="mt-3 overflow-x-auto rounded-md bg-slate-950 p-3 text-xs leading-5 text-slate-200"><code id="model-install-cmd">{installCommand}</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── 8. 开发者信息（折叠） ─────────────── -->
+  <section class="border-t border-slate-200 bg-white dark:border-white/5 dark:bg-slate-950">
+    <div class="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+      <details class="group">
+        <summary class="flex cursor-pointer items-center justify-between gap-2 text-sm text-slate-500 transition-colors hover:text-slate-900 dark:text-slate-500 dark:hover:text-slate-300">
+          <span class="inline-flex items-center gap-2">
+            <Icon name="layers" class="h-4 w-4" />
+            开发者信息
+          </span>
+          <Icon name="plus" class="h-4 w-4 transition-transform group-open:rotate-45" />
+        </summary>
+        <div class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <div>
+            <div class="text-xs font-medium uppercase tracking-wide text-slate-500">标识符</div>
+            <div class="mt-1 font-mono text-xs text-slate-900 dark:text-white">{m.packageKey}</div>
+          </div>
+          <div>
+            <div class="text-xs font-medium uppercase tracking-wide text-slate-500">目标实体</div>
+            <div class="mt-1 font-mono text-xs text-slate-900 dark:text-white">{m.targetEntity}</div>
+          </div>
+          <div>
+            <div class="text-xs font-medium uppercase tracking-wide text-slate-500">首次发布</div>
+            <div class="mt-1 text-sm text-slate-900 dark:text-white">{entry.releasedAt}</div>
+          </div>
+          <div>
+            <div class="text-xs font-medium uppercase tracking-wide text-slate-500">JSON 元数据</div>
+            <a href={`/api/v1/registry/extensions/${entry.slug}.json`} class="mt-1 block break-all font-mono text-xs text-brand-600 hover:underline dark:text-brand-400">
+              /api/v1/registry/extensions/{entry.slug}.json
+            </a>
+          </div>
+        </div>
+      </details>
+    </div>
+  </section>
+</main>
+
+<script>
+  function attachCopy(btnId: string, codeId: string, txtId: string) {
+    const btn = document.getElementById(btnId);
+    const cmd = document.getElementById(codeId);
+    const txt = document.getElementById(txtId);
+    btn?.addEventListener("click", async () => {
+      if (!cmd) return;
+      try {
+        await navigator.clipboard.writeText(cmd.textContent ?? "");
+        if (txt) txt.textContent = "已复制";
+        setTimeout(() => { if (txt) txt.textContent = "复制"; }, 1500);
+      } catch (err) { console.error("Copy failed", err); }
+    });
+  }
+  attachCopy("model-install-copy", "model-install-cmd", "model-install-copy-text");
+  attachCopy("model-code-copy", "model-code", "model-code-copy-text");
+</script>

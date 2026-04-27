@@ -1,146 +1,39 @@
 # ============================================================
-# BangNiCMS 官方宣传站 — 本地/staging Docker Compose
+# BangNiCMS 官方站 — Docker Compose（生产/staging 通用）
 # ------------------------------------------------------------
-# 用途：
-#   - 本地开发期跑通 BangNiCMS 默认形态（Week 1 验收）
-#   - staging 环境部署（备案前用海外服务器）
-#   - 生产环境基线（备案后切国内服务器）
+# 架构：
+#   只有一个 caddy 服务，serve 静态文件 + 自动 HTTPS
+#   dist/ 由 GitHub Actions 推到服务器 /opt/bangnicms-website/dist/
 #
-# 与 BangNiCMS 主仓 infra/docker/docker-compose.prod.yml 的关系：
-#   - 完全沿用主仓的镜像与服务编排约定
-#   - 只在 server 服务上多挂一个 plugins/ 目录 (D5 待解决前先不挂)
-#   - 端口暴露策略：本地直接暴露 6530/6532/6534；staging/prod 走 caddy
-#
-# 使用前必读：
-#   1. 复制 .env.example 为 .env 并填入 4 个密钥
-#   2. 第一次启动：docker compose pull && docker compose up -d
-#   3. 健康检查：curl http://localhost:6530/health
+# 使用：
+#   1. 复制 .env.example → .env，填 DOMAIN 和 ADMIN_EMAIL
+#   2. docker compose up -d
+#   3. caddy 会自动从 Let's Encrypt 申请证书
 # ============================================================
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: bangnicms-website-postgres
+  caddy:
+    image: caddy:2-alpine
+    container_name: bangnicms-website-caddy
     restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
     environment:
-      POSTGRES_DB: bangnicms
-      POSTGRES_USER: bangnicms
-      POSTGRES_PASSWORD: ${BANGNICMS_POSTGRES_PASSWORD:?请在 .env 填 BANGNICMS_POSTGRES_PASSWORD（用 openssl rand -hex 24 生成）}
+      DOMAIN: ${DOMAIN:-cms.bonnei.com}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?请在 .env 填 ADMIN_EMAIL（用于 Let's Encrypt 续期通知）}
     volumes:
-      - ./data/postgres:/var/lib/postgresql/data
+      # 静态站构建产物（由 GitHub Actions 推送）
+      - ./dist:/srv/dist:ro
+      # Caddy 配置文件
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # 持久化证书与日志
+      - ./caddy-data:/data
+      - ./caddy-config:/config
+      - ./caddy-logs:/var/log/caddy
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bangnicms"]
-      interval: 5s
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost"]
+      interval: 30s
       timeout: 5s
-      retries: 20
-    networks:
-      - internal
-
-  redis:
-    image: redis:7-alpine
-    container_name: bangnicms-website-redis
-    restart: unless-stopped
-    command: ["redis-server", "--appendonly", "yes"]
-    volumes:
-      - ./data/redis:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-    networks:
-      - internal
-
-  server:
-    image: ghcr.io/miaochi998/bangnicms-server:${BANGNICMS_VERSION:-0.2.4}
-    container_name: bangnicms-website-server
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    environment:
-      NODE_ENV: ${NODE_ENV:-production}
-      BANGNICMS_APP_VERSION: ${BANGNICMS_VERSION:-0.2.4}
-      BANGNICMS_SERVER_PORT: 6530
-      BANGNICMS_DATABASE_URL: postgresql://bangnicms:${BANGNICMS_POSTGRES_PASSWORD}@postgres:5432/bangnicms?schema=public
-      BANGNICMS_SHADOW_DATABASE_URL: postgresql://bangnicms:${BANGNICMS_POSTGRES_PASSWORD}@postgres:5432/bangnicms_shadow?schema=public
-      BANGNICMS_REDIS_URL: redis://redis:6379
-      BANGNICMS_STORAGE_ROOT: /data
-      BANGNICMS_API_BASE_PATH: /api
-      BANGNICMS_API_VERSION_SEGMENT: "2026-04"
-      BANGNICMS_PUBLIC_API_ORIGIN: ${BANGNICMS_PUBLIC_ORIGIN:-http://localhost:6530}
-      BANGNICMS_PUBLIC_WEB_ORIGIN: ${BANGNICMS_PUBLIC_WEB_ORIGIN:-http://localhost:6532}
-      BANGNICMS_PUBLIC_ADMIN_ORIGIN: ${BANGNICMS_PUBLIC_ADMIN_ORIGIN:-http://localhost:6534}
-      BANGNICMS_SITE_NAME: BangNiCMS
-      BANGNICMS_SITE_HOST: ${BANGNICMS_SITE_HOST:-localhost}
-      BANGNICMS_DEFAULT_LANGUAGE_CODE: zh-CN
-      BANGNICMS_URL_STRATEGY: locale-prefix
-      BANGNICMS_JWT_SECRET: ${BANGNICMS_JWT_SECRET:?请在 .env 填 BANGNICMS_JWT_SECRET（用 openssl rand -hex 24 生成）}
-      BANGNICMS_REVALIDATE_SECRET: ${BANGNICMS_REVALIDATE_SECRET:?请在 .env 填 BANGNICMS_REVALIDATE_SECRET（用 openssl rand -hex 24 生成）}
-      BANGNICMS_PG_DUMP_BIN: pg_dump
-      BANGNICMS_PG_RESTORE_BIN: pg_restore
-    volumes:
-      - ./data/storage:/data
-    ports:
-      - "${BANGNICMS_SERVER_PORT:-6530}:6530"
-    networks:
-      - internal
-
-  web:
-    image: ghcr.io/miaochi998/bangnicms-web:${BANGNICMS_VERSION:-0.2.4}
-    container_name: bangnicms-website-web
-    restart: unless-stopped
-    depends_on:
-      - server
-    environment:
-      NODE_ENV: ${NODE_ENV:-production}
-      BANGNICMS_APP_VERSION: ${BANGNICMS_VERSION:-0.2.4}
-      BANGNICMS_API_BASE_PATH: /api
-      BANGNICMS_API_VERSION_SEGMENT: "2026-04"
-      BANGNICMS_PUBLIC_API_ORIGIN: ${BANGNICMS_PUBLIC_ORIGIN:-http://server:6530}
-      BANGNICMS_PUBLIC_WEB_ORIGIN: ${BANGNICMS_PUBLIC_WEB_ORIGIN:-http://localhost:6532}
-      BANGNICMS_PUBLIC_ADMIN_ORIGIN: ${BANGNICMS_PUBLIC_ADMIN_ORIGIN:-http://localhost:6534}
-      BANGNICMS_DEFAULT_LANGUAGE_CODE: zh-CN
-      BANGNICMS_URL_STRATEGY: locale-prefix
-      BANGNICMS_SITE_NAME: BangNiCMS
-      BANGNICMS_SITE_HOST: ${BANGNICMS_SITE_HOST:-localhost}
-      BANGNICMS_REVALIDATE_SECRET: ${BANGNICMS_REVALIDATE_SECRET}
-      NEXT_PUBLIC_BANGNICMS_API_ORIGIN: ${BANGNICMS_PUBLIC_ORIGIN:-http://localhost:6530}
-      NEXT_PUBLIC_BANGNICMS_API_BASE_PATH: /api
-      NEXT_PUBLIC_BANGNICMS_API_VERSION_SEGMENT: "2026-04"
-    ports:
-      - "${BANGNICMS_WEB_PORT:-6532}:6532"
-    networks:
-      - internal
-
-  admin:
-    image: ghcr.io/miaochi998/bangnicms-admin:${BANGNICMS_VERSION:-0.2.4}
-    container_name: bangnicms-website-admin
-    restart: unless-stopped
-    depends_on:
-      - server
-    environment:
-      NODE_ENV: ${NODE_ENV:-production}
-      BANGNICMS_APP_VERSION: ${BANGNICMS_VERSION:-0.2.4}
-      BANGNICMS_API_BASE_PATH: /api
-      BANGNICMS_API_VERSION_SEGMENT: "2026-04"
-      BANGNICMS_PUBLIC_API_ORIGIN: ${BANGNICMS_PUBLIC_ORIGIN:-http://server:6530}
-      BANGNICMS_PUBLIC_WEB_ORIGIN: ${BANGNICMS_PUBLIC_WEB_ORIGIN:-http://localhost:6532}
-      BANGNICMS_PUBLIC_ADMIN_ORIGIN: ${BANGNICMS_PUBLIC_ADMIN_ORIGIN:-http://localhost:6534}
-      BANGNICMS_DEFAULT_LANGUAGE_CODE: zh-CN
-      BANGNICMS_URL_STRATEGY: locale-prefix
-      BANGNICMS_SITE_NAME: BangNiCMS
-      BANGNICMS_SITE_HOST: ${BANGNICMS_SITE_HOST:-localhost}
-      NEXT_PUBLIC_BANGNICMS_API_ORIGIN: ${BANGNICMS_PUBLIC_ORIGIN:-http://localhost:6530}
-      NEXT_PUBLIC_BANGNICMS_API_BASE_PATH: /api
-      NEXT_PUBLIC_BANGNICMS_API_VERSION_SEGMENT: "2026-04"
-    ports:
-      - "${BANGNICMS_ADMIN_PORT:-6534}:6534"
-    networks:
-      - internal
-
-networks:
-  internal:
-    driver: bridge
+      retries: 3

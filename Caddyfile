@@ -1,0 +1,82 @@
+# ============================================================
+# BangNiCMS 官方站 — Caddy 配置
+# ------------------------------------------------------------
+# 用途：纯静态站托管，自动 HTTPS（Let's Encrypt）
+# 域名：cms.bonnei.com（已备案）
+# ============================================================
+
+{
+	# 全局选项
+	email {$ADMIN_EMAIL}
+	servers {
+		protocol {
+			experimental_http3
+		}
+	}
+}
+
+# ── 主站点 ─────────────────────────────────
+{$DOMAIN:cms.bonnei.com} {
+	# 静态文件根目录
+	root * /srv/dist
+	file_server
+
+	# Registry API JSON：5 分钟缓存（让 BangNiCMS 后台拉到的数据较新）
+	@registry path /api/v1/registry/*
+	header @registry Cache-Control "public, max-age=300, must-revalidate"
+	header @registry Content-Type "application/json; charset=utf-8"
+
+	# 扩展 zip 下载：长缓存（版本号在 URL 里，不会变）
+	@downloads path /downloads/*
+	header @downloads Cache-Control "public, max-age=31536000, immutable"
+
+	# Astro 构建产物（带 hash）：永久缓存
+	@astro path /_astro/*
+	header @astro Cache-Control "public, max-age=31536000, immutable"
+
+	# HTML 文件：不缓存（保证发布即生效）
+	@html {
+		path *.html
+		path /
+	}
+	header @html Cache-Control "no-cache, must-revalidate"
+
+	# 压缩
+	encode gzip zstd
+
+	# 安全响应头
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "geolocation=(), microphone=(), camera=()"
+		# 允许 BangNiCMS 后台跨域调 Registry API
+		Access-Control-Allow-Origin "*"
+		Access-Control-Allow-Methods "GET, OPTIONS"
+		Access-Control-Allow-Headers "Content-Type"
+		# 移除 Server header
+		-Server
+	}
+
+	# SPA 回退：路径找不到时回 404 页（Starlight 会渲染 /404.html）
+	handle_errors {
+		@404 expression {http.error.status_code} == 404
+		rewrite @404 /404.html
+		file_server
+	}
+
+	# 访问日志
+	log {
+		output file /var/log/caddy/access.log {
+			roll_size 100mb
+			roll_keep 10
+			roll_keep_for 720h
+		}
+		format json
+	}
+}
+
+# www 子域跳转主域（可选，如有人输 www.cms.bonnei.com）
+# www.{$DOMAIN:cms.bonnei.com} {
+# 	redir https://{$DOMAIN:cms.bonnei.com}{uri} permanent
+# }

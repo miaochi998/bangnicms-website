@@ -1,4 +1,12 @@
-# 服务器选型 + 域名 + ICP 备案推进清单 v1
+# ⚠️ 已废弃（2026-04-27）
+
+> 配套 v1 实施方案，已归档。最新版本：[`server-domain-icp-checklist-v2.md`](./server-domain-icp-checklist-v2.md)
+>
+> 主要变化：域名 `cms.bonnei.com` 已备案，跳过备案流程；服务器配置从 4C8G 降至 2C4G。
+
+---
+
+# 服务器选型 + 域名 + ICP 备案推进清单 v1（已废弃）
 
 > **状态**：用户线下推进，本文档作为待办对照表
 > **对应 implementation-plan-v1.md 第 12 章 Step 5**

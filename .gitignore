@@ -9,6 +9,15 @@ backups/
 *.dump
 *.sql.gz
 
+# Caddy 运行数据（生产服务器上才有，本地不会有）
+caddy-data/
+caddy-config/
+caddy-logs/
+
+# Astro 构建产物
+dist/
+.astro/
+
 # Node / 构建产物（后续 apps/website 接入时生效）
 node_modules/
 dist/

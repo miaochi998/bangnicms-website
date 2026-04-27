@@ -1,0 +1,145 @@
+---
+const steps = [
+  {
+    n: 1,
+    title: "拉取 docker-compose.yml",
+    desc: "下载我们准备好的部署清单到你的服务器，里面包含 5 个服务的所有配置。",
+    code: `wget https://cms.bonnei.com/docker-compose.yml
+cp .env.example .env
+# 编辑 .env 填入 3 个密钥（用 openssl rand -hex 24 生成）`,
+  },
+  {
+    n: 2,
+    title: "启动",
+    desc: "Docker Compose 会自动拉镜像、初始化数据库、跑健康检查，第一次约 3-5 分钟。",
+    code: `docker compose up -d
+docker compose logs -f server   # 看启动日志（可选）`,
+  },
+  {
+    n: 3,
+    title: "访问后台 / 初始化",
+    desc: "浏览器打开后台，按引导设置管理员账号、站点名称、默认语言，5 分钟完成全部初始化。",
+    code: `open http://localhost:6534/install
+# 生产环境：https://admin.your-domain.com/install`,
+  },
+];
+---
+
+<section
+  id="quick-start"
+  class="bg-slate-50 py-24 sm:py-32 dark:bg-slate-900/50"
+  aria-label="快速开始"
+>
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="reveal mx-auto max-w-3xl text-center">
+      <p class="text-sm font-semibold tracking-wider text-brand-500 uppercase">
+        Quick Start
+      </p>
+      <h2
+        class="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl dark:text-white"
+      >
+        3 步，让你的网站
+        <span class="gradient-text">10 分钟上线</span>
+      </h2>
+      <p class="mt-5 text-lg text-slate-600 dark:text-slate-400">
+        准备一台 2C4G 服务器（任何主流云厂商皆可），跟着下面三步走。
+      </p>
+    </div>
+
+    <div class="mt-16 space-y-6 lg:space-y-8">
+      {
+        steps.map((step, i) => (
+          <div
+            class="reveal relative flex flex-col gap-6 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-lg shadow-slate-900/5 sm:p-8 lg:flex-row lg:gap-10 dark:border-white/10 dark:bg-slate-900/60 dark:shadow-black/30"
+            style={`transition-delay: ${i * 80}ms`}
+          >
+            {/* 编号 + 文字 */}
+            <div class="flex-1 lg:max-w-md">
+              <div class="flex items-center gap-3">
+                <span
+                  class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-brand-500 text-sm font-bold text-white shadow-lg shadow-brand-500/30"
+                  aria-hidden="true"
+                >
+                  {step.n}
+                </span>
+                <h3 class="text-xl font-semibold text-slate-900 dark:text-white">
+                  {step.title}
+                </h3>
+              </div>
+              <p class="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                {step.desc}
+              </p>
+            </div>
+
+            {/* 代码块 */}
+            <div class="relative flex-1 overflow-hidden rounded-xl bg-slate-950 text-sm dark:bg-black/40 dark:ring-1 dark:ring-white/5">
+              <button
+                type="button"
+                class="copy-btn absolute right-3 top-3 z-10 inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs font-medium text-slate-300 backdrop-blur-sm transition-colors hover:bg-white/10 hover:text-white"
+                data-copy-target={`step-${step.n}`}
+                aria-label="复制代码"
+              >
+                <svg viewBox="0 0 24 24" class="copy-icon h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="9" y="9" width="13" height="13" rx="2"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                <svg viewBox="0 0 24 24" class="check-icon hidden h-3.5 w-3.5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M20 6 9 17l-5-5"/>
+                </svg>
+                <span class="copy-label">复制</span>
+              </button>
+              <pre
+                id={`step-${step.n}`}
+                class="overflow-x-auto p-5 pr-20 font-mono text-xs leading-7 text-slate-200"
+              ><code>{step.code}</code></pre>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+
+    <!-- 底部提示 -->
+    <p
+      class="reveal mx-auto mt-12 max-w-2xl text-center text-sm text-slate-500 dark:text-slate-400"
+    >
+      遇到问题？查看
+      <a href="/docs/getting-started/troubleshooting" class="link-underline font-medium text-brand-600 dark:text-brand-400">
+        故障排查指南
+      </a>
+      或在
+      <a href="https://github.com/miaochi998/BangNiCMS/issues" class="link-underline font-medium text-brand-600 dark:text-brand-400" target="_blank" rel="noopener">
+        GitHub Issues
+      </a>
+      提问，通常几小时内会有人回复。
+    </p>
+  </div>
+</section>
+
+<script>
+  // 一键复制 + 视觉反馈
+  document.querySelectorAll<HTMLButtonElement>(".copy-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const targetId = btn.dataset.copyTarget;
+      if (!targetId) return;
+      const target = document.getElementById(targetId);
+      if (!target) return;
+      const text = target.innerText;
+      try {
+        await navigator.clipboard.writeText(text);
+        const copyIcon = btn.querySelector<HTMLElement>(".copy-icon");
+        const checkIcon = btn.querySelector<HTMLElement>(".check-icon");
+        const label = btn.querySelector<HTMLElement>(".copy-label");
+        copyIcon?.classList.add("hidden");
+        checkIcon?.classList.remove("hidden");
+        if (label) label.textContent = "已复制";
+        setTimeout(() => {
+          copyIcon?.classList.remove("hidden");
+          checkIcon?.classList.add("hidden");
+          if (label) label.textContent = "复制";
+        }, 1800);
+      } catch (err) {
+        console.error("复制失败", err);
+      }
+    });
+  });
+</script>

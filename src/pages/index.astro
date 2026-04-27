@@ -1,29 +1,18 @@
 ---
 import BaseLayout from "~/layouts/BaseLayout.astro";
 import Hero from "~/components/Hero.astro";
+import Features from "~/components/Features.astro";
+import UseCases from "~/components/UseCases.astro";
+import Comparison from "~/components/Comparison.astro";
+import QuickStart from "~/components/QuickStart.astro";
+import FinalCTA from "~/components/FinalCTA.astro";
 ---
 
 <BaseLayout title="BangNiCMS — 让中国人造出更好的网站">
   <Hero />
-
-  <!-- 占位区，后续 sections 在轮次 2 加入 -->
-  <section
-    id="features"
-    class="bg-slate-50 py-24 dark:bg-slate-900/50"
-    aria-label="功能特性（建设中）"
-  >
-    <div class="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-      <p class="text-sm font-medium tracking-wider text-brand-500 uppercase">
-        Coming Next
-      </p>
-      <h2
-        class="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white"
-      >
-        功能特性 / 使用场景 / 对比表 / 快速开始
-      </h2>
-      <p class="mx-auto mt-4 max-w-2xl text-slate-600 dark:text-slate-400">
-        其余区块将在轮次 2 加入：8 个特性卡片（带 3D 倾斜悬停）、4 个场景演示、与 WordPress/Strapi/Ghost 对比表、3 步快速开始代码块。
-      </p>
-    </div>
-  </section>
+  <Features />
+  <UseCases />
+  <Comparison />
+  <QuickStart />
+  <FinalCTA />
 </BaseLayout>

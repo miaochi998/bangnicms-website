@@ -1,0 +1,154 @@
+---
+const features = [
+  {
+    title: "内容模型可装可拆",
+    desc: "产品 / 文章 / 下载 / 单页 4 个内置模型，按需从扩展市场加装更多，字段定义随装随生效。",
+    iconPath: "M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7M3 7l9-4 9 4M3 7l9 4 9-4M12 11v8",
+    accent: "from-violet-500 to-fuchsia-500",
+  },
+  {
+    title: "多语言天生支持",
+    desc: "录入即多语言，AI 翻译嵌在编辑界面里。外贸独立站可以直接上线中英双语版。",
+    iconPath: "M5 8l6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6",
+    accent: "from-sky-500 to-cyan-500",
+  },
+  {
+    title: "主题与插件机制",
+    desc: "视觉换肤 + 功能扩展，全部通过装包完成，无需 fork 源码、无需重新部署。",
+    iconPath: "M14 2v6h6M16 13H8M16 17H8M10 9H8M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z",
+    accent: "from-emerald-500 to-teal-500",
+  },
+  {
+    title: "AI 助手深度集成",
+    desc: "翻译、SEO 建议、内容改写、自动摘要，全部嵌在编辑器里，不需要离开后台另开标签页。",
+    iconPath: "M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 16a6 6 0 1 1 6-6 6 6 0 0 1-6 6zm0-10a4 4 0 1 0 4 4 4 4 0 0 0-4-4z",
+    accent: "from-rose-500 to-orange-500",
+  },
+  {
+    title: "SEO 全套就绪",
+    desc: "sitemap、结构化数据、多语言 hreflang、Open Graph 一应俱全，搜索引擎友好。",
+    iconPath: "M21 21l-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z",
+    accent: "from-amber-500 to-yellow-500",
+  },
+  {
+    title: "一键部署上线",
+    desc: "Docker Compose 拉镜像即用，国内主流云全兼容。10 分钟从零到可访问。",
+    iconPath: "M5 12h14M5 12l4-4M5 12l4 4M19 4v16",
+    accent: "from-indigo-500 to-blue-500",
+  },
+  {
+    title: "官方扩展市场",
+    desc: "主题、插件、模型在线浏览安装，离线包也能装。版本升级在后台一键完成。",
+    iconPath: "M3 3h18v4H3zM3 11h18v10H3zM8 7v14M16 7v14",
+    accent: "from-pink-500 to-rose-500",
+  },
+  {
+    title: "备份与升级有保障",
+    desc: "自动备份、一键升级、一键回滚。出问题永远能回到最近一个稳定版本。",
+    iconPath: "M3 12a9 9 0 0 1 9-9 9 9 0 0 1 6.74 3M21 3v6h-6M21 12a9 9 0 0 1-9 9 9 9 0 0 1-6.74-3M3 21v-6h6",
+    accent: "from-lime-500 to-green-500",
+  },
+];
+---
+
+<section
+  id="features"
+  class="relative bg-white py-24 sm:py-32 dark:bg-slate-950"
+  aria-label="核心特性"
+>
+  <!-- 顶部背景装饰 -->
+  <div
+    class="pointer-events-none absolute inset-0 bg-grid [mask-image:radial-gradient(ellipse_50%_60%_at_50%_50%,black,transparent)]"
+    aria-hidden="true"
+  ></div>
+
+  <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <!-- 标题区 -->
+    <div class="reveal mx-auto max-w-3xl text-center">
+      <p
+        class="text-sm font-semibold tracking-wider text-brand-500 uppercase"
+      >
+        Why BangNiCMS
+      </p>
+      <h2
+        class="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl dark:text-white"
+      >
+        所有现代 CMS 该有的，
+        <span class="gradient-text">我们都给你做好了</span>
+      </h2>
+      <p class="mt-5 text-lg text-slate-600 dark:text-slate-400">
+        八大核心能力，无论你是个人博主、企业官网、还是外贸卖家，都能即装即用。
+      </p>
+    </div>
+
+    <!-- 特性卡片网格 -->
+    <ul
+      class="mt-16 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"
+      role="list"
+    >
+      {
+        features.map((feat, i) => (
+          <li
+            class="reveal feature-card group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-6 transition-all duration-300 hover:border-brand-300 hover:shadow-xl hover:shadow-brand-500/5 dark:border-white/10 dark:bg-slate-900/50 dark:hover:border-brand-500/40 dark:hover:bg-slate-900"
+            style={`transition-delay: ${(i % 4) * 60}ms`}
+          >
+            {/* 角落渐变光晕（hover 时显现） */}
+            <div
+              class={`pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-gradient-to-br ${feat.accent} opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-30`}
+              aria-hidden="true"
+            />
+
+            {/* 图标 */}
+            <div
+              class={`relative inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${feat.accent} text-white shadow-lg shadow-slate-900/10`}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                class="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d={feat.iconPath} />
+              </svg>
+            </div>
+
+            {/* 文字 */}
+            <h3 class="relative mt-5 text-base font-semibold text-slate-900 dark:text-white">
+              {feat.title}
+            </h3>
+            <p class="relative mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+              {feat.desc}
+            </p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<script>
+  // 鼠标 3D 倾斜微交互（仅指针设备启用）
+  const isFinePointer = window.matchMedia("(pointer: fine)").matches;
+  if (isFinePointer && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const cards = document.querySelectorAll<HTMLElement>(".feature-card");
+    cards.forEach((card) => {
+      card.addEventListener("mousemove", (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const cx = rect.width / 2;
+        const cy = rect.height / 2;
+        const rx = ((y - cy) / cy) * -3; // 最大 ±3deg
+        const ry = ((x - cx) / cx) * 3;
+        card.style.transform = `perspective(800px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(0)`;
+      });
+      card.addEventListener("mouseleave", () => {
+        card.style.transform = "";
+      });
+    });
+  }
+</script>

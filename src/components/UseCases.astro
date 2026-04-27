@@ -1,0 +1,155 @@
+---
+const cases = [
+  {
+    tag: "个人博主",
+    title: "把博客做成你的个人品牌",
+    desc: "Markdown 撰写、AI 帮你润色、SEO 自动配置好。从写下第一篇到被搜索引擎收录，零运维负担。",
+    bullets: ["编辑器内置 AI 润色与 SEO 建议", "评论 / RSS / 订阅插件随装即用", "暗色模式自动适配"],
+    visual: "blog",
+  },
+  {
+    tag: "企业官网",
+    title: "5 个页面讲清楚你公司的全部",
+    desc: "首页、关于、产品、新闻、联系。每个页面字段都贴合企业讲故事的逻辑，运营无门槛上手。",
+    bullets: ["产品 / 案例 / 新闻 三套现成模型", "联系表单线上线下打通", "中英双语版同步运营"],
+    visual: "corporate",
+  },
+  {
+    tag: "外贸独立站",
+    title: "把货卖到 Google 能搜到的地方",
+    desc: "产品多语言录入 + AI 翻译 + 询盘表单 + Google 友好的 URL 结构。Google Ads 落地页一站搞定。",
+    bullets: ["产品规格表 / 起订量 / 交期字段", "询盘购物车 + 邮件通知", "hreflang 多语言 SEO 自动注入"],
+    visual: "trade",
+  },
+  {
+    tag: "下载站 / 文档站",
+    title: "把资料整理成访客找得到的样子",
+    desc: "下载列表、版本管理、安装文档、API 索引。技术内容也能用 BangNiCMS 优雅地组织起来。",
+    bullets: ["文件版本与下载量统计", "Markdown / 富文本任选", "全文搜索 + 反馈链接"],
+    visual: "docs",
+  },
+];
+
+// 简单视觉占位 SVG（每个 case 一种风格）
+const visuals = {
+  blog: `
+    <rect x="20" y="30" width="60%" height="14" rx="4" fill="currentColor" opacity=".12"/>
+    <rect x="20" y="60" width="80%" height="8" rx="3" fill="currentColor" opacity=".08"/>
+    <rect x="20" y="76" width="70%" height="8" rx="3" fill="currentColor" opacity=".08"/>
+    <rect x="20" y="92" width="40%" height="8" rx="3" fill="currentColor" opacity=".08"/>
+    <rect x="20" y="116" width="100%" height="60" rx="6" fill="currentColor" opacity=".06"/>
+  `,
+  corporate: `
+    <rect x="20" y="30" width="100%" height="50" rx="6" fill="currentColor" opacity=".06"/>
+    <rect x="20" y="92" width="30%" height="48" rx="6" fill="currentColor" opacity=".09"/>
+    <rect x="36%" y="92" width="30%" height="48" rx="6" fill="currentColor" opacity=".09"/>
+    <rect x="68%" y="92" width="30%" height="48" rx="6" fill="currentColor" opacity=".09"/>
+  `,
+  trade: `
+    <rect x="20" y="30" width="48%" height="80" rx="6" fill="currentColor" opacity=".09"/>
+    <rect x="52%" y="30" width="48%" height="38" rx="4" fill="currentColor" opacity=".06"/>
+    <rect x="52%" y="74" width="32%" height="10" rx="3" fill="currentColor" opacity=".12"/>
+    <rect x="52%" y="92" width="48%" height="18" rx="4" fill="currentColor" opacity=".18"/>
+  `,
+  docs: `
+    <rect x="20" y="30" width="22%" height="140" rx="4" fill="currentColor" opacity=".06"/>
+    <rect x="46" y="42" width="14%" height="6" rx="2" fill="currentColor" opacity=".18"/>
+    <rect x="46" y="56" width="16%" height="6" rx="2" fill="currentColor" opacity=".10"/>
+    <rect x="46" y="70" width="13%" height="6" rx="2" fill="currentColor" opacity=".10"/>
+    <rect x="30%" y="30" width="68%" height="12" rx="3" fill="currentColor" opacity=".18"/>
+    <rect x="30%" y="50" width="68%" height="6" rx="2" fill="currentColor" opacity=".09"/>
+    <rect x="30%" y="64" width="62%" height="6" rx="2" fill="currentColor" opacity=".09"/>
+    <rect x="30%" y="78" width="68%" height="6" rx="2" fill="currentColor" opacity=".09"/>
+    <rect x="30%" y="98" width="68%" height="36" rx="4" fill="currentColor" opacity=".05"/>
+  `,
+};
+---
+
+<section
+  class="bg-slate-50 py-24 sm:py-32 dark:bg-slate-900/50"
+  aria-label="使用场景"
+>
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="reveal mx-auto max-w-3xl text-center">
+      <p class="text-sm font-semibold tracking-wider text-brand-500 uppercase">
+        Use Cases
+      </p>
+      <h2
+        class="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl dark:text-white"
+      >
+        4 种最常见的用法，
+        <br class="hidden sm:block" />
+        <span class="gradient-text">总有一种是你的</span>
+      </h2>
+    </div>
+
+    <div class="mt-20 space-y-20 lg:space-y-32">
+      {
+        cases.map((c, i) => (
+          <div
+            class={`reveal grid items-center gap-10 lg:grid-cols-2 lg:gap-16 ${
+              i % 2 === 1 ? "lg:[&>*:first-child]:order-2" : ""
+            }`}
+          >
+            {/* 视觉 */}
+            <div
+              class="relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xl shadow-slate-900/5 dark:border-white/10 dark:bg-slate-900 dark:shadow-black/30"
+            >
+              {/* 顶部窗口栏 */}
+              <div class="flex items-center gap-1.5 border-b border-slate-200 px-4 py-3 dark:border-white/10">
+                <span class="h-2.5 w-2.5 rounded-full bg-red-400/60" />
+                <span class="h-2.5 w-2.5 rounded-full bg-yellow-400/60" />
+                <span class="h-2.5 w-2.5 rounded-full bg-green-400/60" />
+              </div>
+              {/* 内容占位 */}
+              <svg
+                viewBox="0 0 400 200"
+                preserveAspectRatio="xMidYMid meet"
+                class="h-full w-full text-brand-500"
+                aria-hidden="true"
+                set:html={visuals[c.visual as keyof typeof visuals]}
+              />
+              {/* 角落光晕 */}
+              <div
+                class="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-brand-400/10 blur-3xl"
+                aria-hidden="true"
+              />
+            </div>
+
+            {/* 文字 */}
+            <div>
+              <span class="inline-flex items-center rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-700 dark:bg-brand-500/10 dark:text-brand-300">
+                {c.tag}
+              </span>
+              <h3 class="mt-4 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+                {c.title}
+              </h3>
+              <p class="mt-4 text-base leading-relaxed text-slate-600 dark:text-slate-400">
+                {c.desc}
+              </p>
+              <ul class="mt-6 space-y-2.5 text-sm text-slate-700 dark:text-slate-300">
+                {c.bullets.map((b) => (
+                  <li class="flex items-start gap-2">
+                    <svg
+                      viewBox="0 0 24 24"
+                      class="mt-0.5 h-4 w-4 flex-none text-brand-500"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M20 6 9 17l-5-5" />
+                    </svg>
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

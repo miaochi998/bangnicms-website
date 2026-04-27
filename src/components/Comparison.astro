@@ -1,0 +1,141 @@
+---
+const products = ["BangNiCMS", "WordPress", "Strapi", "Ghost"];
+
+type Cell = "yes" | "partial" | "no";
+
+interface Row {
+  feature: string;
+  values: Cell[]; // 与 products 对齐
+}
+
+const rows: Row[] = [
+  { feature: "中文友好（界面/文档/AI 助手）",        values: ["yes", "partial", "partial", "no"] },
+  { feature: "开箱即用（10 分钟可上线）",             values: ["yes", "yes", "partial", "yes"] },
+  { feature: "内置丰富扩展（主题/插件/模型）",         values: ["yes", "yes", "no", "partial"] },
+  { feature: "国内服务器友好（合规 + 备案）",          values: ["yes", "partial", "partial", "partial"] },
+  { feature: "完全免费开源",                          values: ["yes", "yes", "yes", "partial"] },
+  { feature: "天生多语言（hreflang + AI 翻译）",       values: ["yes", "partial", "yes", "no"] },
+  { feature: "现代技术栈（TypeScript + Next.js）",     values: ["yes", "no", "yes", "no"] },
+  { feature: "一键备份与升级",                        values: ["yes", "partial", "no", "partial"] },
+];
+
+const cellMap = {
+  yes: { glyph: "✓", label: "支持", className: "text-emerald-500" },
+  partial: { glyph: "△", label: "部分支持", className: "text-amber-500" },
+  no: { glyph: "✗", label: "不支持", className: "text-slate-400 dark:text-slate-600" },
+} as const;
+---
+
+<section class="bg-white py-24 sm:py-32 dark:bg-slate-950" aria-label="产品对比">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="reveal mx-auto max-w-3xl text-center">
+      <p class="text-sm font-semibold tracking-wider text-brand-500 uppercase">
+        Compare
+      </p>
+      <h2
+        class="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl dark:text-white"
+      >
+        和其他 CMS 比，
+        <span class="gradient-text">差在哪、好在哪</span>
+      </h2>
+      <p class="mt-5 text-lg text-slate-600 dark:text-slate-400">
+        我们不掩饰短板，也不夸大优势。下面是一张对你做选型有用的表格。
+      </p>
+    </div>
+
+    <!-- 桌面：表格 -->
+    <div
+      class="reveal mt-14 hidden overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-900/5 md:block dark:border-white/10 dark:bg-slate-900/50 dark:shadow-black/30"
+    >
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-slate-200 dark:border-white/10">
+            <th class="px-6 py-5 text-left font-semibold text-slate-900 dark:text-white">
+              能力 / 产品
+            </th>
+            {
+              products.map((p, i) => (
+                <th
+                  scope="col"
+                  class={`px-6 py-5 text-center font-semibold ${
+                    i === 0
+                      ? "bg-brand-50/80 text-brand-700 dark:bg-brand-500/10 dark:text-brand-300"
+                      : "text-slate-700 dark:text-slate-300"
+                  }`}
+                >
+                  {p}
+                </th>
+              ))
+            }
+          </tr>
+        </thead>
+        <tbody>
+          {
+            rows.map((row, ri) => (
+              <tr
+                class={`border-b border-slate-100 last:border-0 dark:border-white/5 ${
+                  ri % 2 === 1 ? "bg-slate-50/60 dark:bg-white/[0.02]" : ""
+                }`}
+              >
+                <td class="px-6 py-4 text-slate-700 dark:text-slate-300">
+                  {row.feature}
+                </td>
+                {row.values.map((v, vi) => {
+                  const cell = cellMap[v];
+                  return (
+                    <td
+                      class={`px-6 py-4 text-center text-lg font-bold ${cell.className} ${
+                        vi === 0 ? "bg-brand-50/40 dark:bg-brand-500/5" : ""
+                      }`}
+                      title={cell.label}
+                      aria-label={`${products[vi]} ${cell.label}`}
+                    >
+                      {cell.glyph}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 移动：分组卡片 -->
+    <div class="reveal mt-12 space-y-4 md:hidden">
+      {
+        rows.map((row) => (
+          <div class="overflow-hidden rounded-xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-slate-900/50">
+            <p class="text-sm font-medium text-slate-900 dark:text-white">
+              {row.feature}
+            </p>
+            <div class="mt-3 grid grid-cols-2 gap-2 text-sm">
+              {row.values.map((v, vi) => {
+                const cell = cellMap[v];
+                return (
+                  <div class="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2 dark:bg-white/5">
+                    <span class="text-slate-600 dark:text-slate-400">{products[vi]}</span>
+                    <span class={`font-bold ${cell.className}`}>{cell.glyph}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))
+      }
+    </div>
+
+    <!-- 图例 -->
+    <div class="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-slate-500 dark:text-slate-400">
+      <span class="flex items-center gap-1.5">
+        <span class="font-bold text-emerald-500">✓</span> 支持
+      </span>
+      <span class="flex items-center gap-1.5">
+        <span class="font-bold text-amber-500">△</span> 部分支持
+      </span>
+      <span class="flex items-center gap-1.5">
+        <span class="font-bold text-slate-400 dark:text-slate-600">✗</span> 不支持
+      </span>
+    </div>
+  </div>
+</section>

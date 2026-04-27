@@ -1,0 +1,40 @@
+# 环境变量
+.env
+.env.local
+.env.*.local
+
+# Docker 持久化数据（绝不能进 git）
+data/
+backups/
+*.dump
+*.sql.gz
+
+# Node / 构建产物（后续 apps/website 接入时生效）
+node_modules/
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# 日志
+logs/
+*.log
+npm-debug.log*
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 临时文件
+*.tmp
+.cache/
+
+# 凭证 / 密钥
+*.pem
+*.key
+secrets/

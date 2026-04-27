@@ -2,80 +2,228 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
+import { registryEntries } from "../../registry/entries";
+import { toRegistrySummary } from "../../lib/registry-types";
+
+const summaries = registryEntries.map(toRegistrySummary);
+
+const categoryLabels: Record<string, string> = {
+  theme: "主题",
+  plugin: "插件",
+  model: "模型包",
+};
+
+const statusLabels: Record<string, { text: string; cls: string }> = {
+  stable: { text: "稳定版", cls: "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:ring-emerald-900/50" },
+  beta: { text: "Beta", cls: "bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:ring-amber-900/50" },
+  deprecated: { text: "已停用", cls: "bg-red-50 text-red-700 ring-red-200 dark:bg-red-950/40 dark:text-red-400 dark:ring-red-900/50" },
+  "coming-soon": { text: "即将上线", cls: "bg-slate-100 text-slate-700 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700" },
+};
+
+const counts = {
+  all: summaries.length,
+  theme: summaries.filter((s) => s.category === "theme").length,
+  plugin: summaries.filter((s) => s.category === "plugin").length,
+  model: summaries.filter((s) => s.category === "model").length,
+};
 ---
 
 <BaseLayout
   title="扩展市场 - BangNiCMS"
-  description="浏览、试用、一键安装由社区与官方维护的 BangNiCMS 主题与插件"
+  description="浏览、试用、一键安装由社区与官方维护的 BangNiCMS 主题、插件与模型包"
 >
   <Header slot="header" />
 
-  <main class="mx-auto max-w-3xl px-4 py-24 sm:px-6 lg:px-8">
-    <div class="text-center">
-      <span
-        class="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/50 dark:text-amber-300"
-      >
-        <span class="relative flex h-2 w-2">
-          <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75"></span>
-          <span class="relative inline-flex h-2 w-2 rounded-full bg-amber-500"></span>
-        </span>
-        即将上线
-      </span>
+  <main>
+    <!-- Hero -->
+    <section class="border-b border-slate-200 bg-slate-50 dark:border-white/5 dark:bg-slate-900/50">
+      <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div class="text-center">
+          <h1 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
+            扩展市场
+          </h1>
+          <p class="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-400">
+            浏览官方与社区维护的<strong class="font-semibold text-slate-900 dark:text-white">主题</strong>、<strong class="font-semibold text-slate-900 dark:text-white">插件</strong>与<strong class="font-semibold text-slate-900 dark:text-white">模型包</strong>，让你的站点几分钟内焕然一新。
+          </p>
 
-      <h1
-        class="mt-6 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-white"
-      >
-        扩展市场
-      </h1>
+          <!-- 搜索框 -->
+          <div class="mx-auto mt-8 max-w-md">
+            <div class="relative">
+              <svg
+                viewBox="0 0 24 24"
+                class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
+              <input
+                id="ext-search"
+                type="search"
+                placeholder="搜索扩展名称、描述或标签..."
+                class="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
+              />
+            </div>
+          </div>
 
-      <p class="mt-4 text-base leading-7 text-slate-600 dark:text-slate-400">
-        浏览、试用并一键安装由社区与官方维护的<strong class="font-semibold text-slate-900 dark:text-white">主题</strong>与<strong class="font-semibold text-slate-900 dark:text-white">插件</strong>，让你的站点几分钟内焕然一新。
-      </p>
-
-      <div class="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div
-          class="rounded-lg border border-slate-200 bg-white p-5 text-left dark:border-white/10 dark:bg-slate-900/50"
-        >
-          <div class="text-2xl font-bold text-slate-900 dark:text-white">10+</div>
-          <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">官方主题</div>
-        </div>
-        <div
-          class="rounded-lg border border-slate-200 bg-white p-5 text-left dark:border-white/10 dark:bg-slate-900/50"
-        >
-          <div class="text-2xl font-bold text-slate-900 dark:text-white">20+</div>
-          <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">实用插件</div>
-        </div>
-        <div
-          class="rounded-lg border border-slate-200 bg-white p-5 text-left dark:border-white/10 dark:bg-slate-900/50"
-        >
-          <div class="text-2xl font-bold text-slate-900 dark:text-white">100%</div>
-          <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">兼容当前版本</div>
+          <!-- 类型筛选 Tabs -->
+          <div
+            id="ext-tabs"
+            class="mx-auto mt-6 inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white p-1 dark:border-white/10 dark:bg-slate-900"
+            role="tablist"
+            aria-label="类型筛选"
+          >
+            {[
+              { value: "all", label: "全部", count: counts.all },
+              { value: "theme", label: "主题", count: counts.theme },
+              { value: "plugin", label: "插件", count: counts.plugin },
+              { value: "model", label: "模型包", count: counts.model },
+            ].map((tab) => (
+              <button
+                type="button"
+                data-tab={tab.value}
+                data-active={tab.value === "all" ? "true" : "false"}
+                class="ext-tab inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 data-[active=true]:bg-slate-900 data-[active=true]:text-white dark:text-slate-400 dark:hover:text-white dark:data-[active=true]:bg-white dark:data-[active=true]:text-slate-900"
+                role="tab"
+              >
+                {tab.label}
+                <span class="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-slate-600 group-data-[active=true]:bg-white/20 group-data-[active=true]:text-white dark:bg-slate-800 dark:text-slate-400">
+                  {tab.count}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
+    </section>
 
-      <p class="mt-12 text-sm text-slate-500 dark:text-slate-500">
-        我们正在打磨这个市场。到时这里会有完整的浏览、详情、安装命令复制。
-      </p>
+    <!-- 卡片网格 -->
+    <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <div
+        id="ext-grid"
+        class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+      >
+        {summaries.map((s) => (
+          <a
+            href={`/extensions/${s.slug}`}
+            class="ext-card group flex flex-col rounded-xl border border-slate-200 bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md dark:border-white/10 dark:bg-slate-900 dark:hover:border-brand-500/50"
+            data-category={s.category}
+            data-search={`${s.name} ${s.description} ${s.tags.join(" ")} ${s.author}`.toLowerCase()}
+          >
+            <!-- Header -->
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <span class="flex h-11 w-11 items-center justify-center rounded-lg bg-slate-100 text-2xl dark:bg-slate-800">
+                  {s.iconEmoji}
+                </span>
+                <div>
+                  <div class="text-sm font-semibold text-slate-900 dark:text-white">
+                    {s.name}
+                  </div>
+                  <div class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                    {categoryLabels[s.category]} · v{s.version}
+                  </div>
+                </div>
+              </div>
+              <span
+                class={`inline-flex shrink-0 items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${statusLabels[s.status].cls}`}
+              >
+                {statusLabels[s.status].text}
+              </span>
+            </div>
 
-      <div class="mt-6 flex items-center justify-center gap-3">
-        <a
-          href="/"
-          class="inline-flex items-center gap-1.5 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
-        >
-          返回首页
-          <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M5 12h14M13 5l7 7-7 7" />
-          </svg>
-        </a>
-        <a
-          href="/docs/getting-started/installation"
-          class="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-all hover:bg-slate-50 dark:border-white/15 dark:bg-transparent dark:text-slate-200 dark:hover:bg-white/5"
-        >
-          阅读文档
-        </a>
+            <!-- 描述 -->
+            <p class="mt-4 line-clamp-2 text-sm leading-6 text-slate-600 dark:text-slate-400">
+              {s.description}
+            </p>
+
+            <!-- Tags -->
+            {s.tags.length > 0 && (
+              <div class="mt-4 flex flex-wrap gap-1.5">
+                {s.tags.slice(0, 4).map((tag) => (
+                  <span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <!-- Footer 统计 -->
+            <div class="mt-auto flex items-center gap-4 pt-4 text-xs text-slate-500 dark:text-slate-500">
+              <span class="inline-flex items-center gap-1">
+                <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                <span class="tabular-nums">{s.stats.installs.toLocaleString()}</span>
+              </span>
+              <span class="inline-flex items-center gap-1">
+                <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                <span class="tabular-nums">{s.stats.stars}</span>
+              </span>
+              <span class="ml-auto text-slate-400 transition-colors group-hover:text-brand-500 dark:group-hover:text-brand-400">
+                查看 →
+              </span>
+            </div>
+          </a>
+        ))}
       </div>
-    </div>
+
+      <!-- 空状态 -->
+      <div
+        id="ext-empty"
+        class="hidden py-16 text-center"
+      >
+        <div class="text-4xl">🔍</div>
+        <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">
+          没有匹配的扩展。试试更换关键词或类型。
+        </p>
+      </div>
+    </section>
   </main>
 
   <Footer slot="footer" />
 </BaseLayout>
+
+<script>
+  // 类型筛选 + 搜索（纯客户端 vanilla JS）
+  const tabs = document.querySelectorAll<HTMLButtonElement>(".ext-tab");
+  const cards = document.querySelectorAll<HTMLAnchorElement>(".ext-card");
+  const search = document.getElementById("ext-search") as HTMLInputElement | null;
+  const empty = document.getElementById("ext-empty");
+
+  let activeCategory = "all";
+  let keyword = "";
+
+  function applyFilter() {
+    let visibleCount = 0;
+    const kw = keyword.trim().toLowerCase();
+    cards.forEach((card) => {
+      const cat = card.dataset.category ?? "";
+      const haystack = card.dataset.search ?? "";
+      const matchCategory = activeCategory === "all" || activeCategory === cat;
+      const matchKeyword = kw.length === 0 || haystack.includes(kw);
+      const visible = matchCategory && matchKeyword;
+      card.classList.toggle("hidden", !visible);
+      if (visible) visibleCount++;
+    });
+    if (empty) empty.classList.toggle("hidden", visibleCount > 0);
+  }
+
+  tabs.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      tabs.forEach((b) => b.setAttribute("data-active", "false"));
+      btn.setAttribute("data-active", "true");
+      activeCategory = btn.dataset.tab ?? "all";
+      applyFilter();
+    });
+  });
+
+  search?.addEventListener("input", () => {
+    keyword = search.value;
+    applyFilter();
+  });
+</script>

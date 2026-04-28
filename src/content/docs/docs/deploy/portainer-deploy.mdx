@@ -118,6 +118,63 @@ https://你的服务器IP:9443
 
 ## 第 5 步：创建 BangNiCMS Stack
 
+### 5.1 （必读）了解数据持久化：bind mount vs Docker volume
+
+在创建 stack 之前，必须理解 BangNiCMS 的数据存在哪里、如何清理。这决定了后续重部署 / 迁移 / 备份时该怎么做。
+
+| 类别 | Docker volume（命名卷） | bind mount（**BangNiCMS 采用**） |
+|---|---|---|
+| `docker-compose.yml` 语法 | `- pgdata:/var/lib/postgresql/data` | `- /opt/bangnicms/data/postgres:/var/lib/postgresql/data` |
+| 数据位置 | Docker 内部路径 | 宿主机 `/opt/bangnicms/data/` |
+| Portainer “Volumes” 页面 | ✅ 可见、可点击删除 | ❌ **不显示**（必须 SSH 到宿主机 `rm -rf` 删除） |
+| 删 stack / 删容器 | 默认保留 | **始终保留**（在宿主机目录中） |
+| 备份 | `docker run --rm -v vol:/d alpine tar ...` | `tar -czf backup.tar.gz /opt/bangnicms/data` |
+| 迁移 | `docker volume export/import` | `rsync -av /opt/bangnicms/data/ 新机:/opt/bangnicms/data/` |
+
+**为什么选 bind mount？**
+
+1. 备份 / 迁移零门槛（一行命令即可）
+2. 出问题可直接 `cd /opt/bangnicms/data/postgres` 查看
+3. Borg / Restic / rsync.net / 阿里云 OSS 镜像等企业级备份工具都原生支持宿主机目录
+4. 宿主机 `du -sh` / `ls` 可见，不会“丢了谁也不知道”
+
+**唯一代价**：Portainer “Volumes” 页面看不到这些目录。请记住 4 个路径：
+
+```bash
+/opt/bangnicms/data/postgres   # 主数据库
+/opt/bangnicms/data/redis      # 缓存
+/opt/bangnicms/data/storage    # 用户上传文件
+/opt/bangnicms/data/caddy      # Let's Encrypt 证书 + ACME 账户
+```
+
+### 5.2 （必读）准备 storage 目录权限
+
+<Aside type="caution" title="跳过这一步 server 会 restart loop">
+server 容器以非 root 用户（UID **1001**）运行，但 docker 首次创建 bind mount 目录时 owner 默认是 root。不预先 chown 会报 `EACCES: permission denied, mkdir '/data/plugins'`。
+</Aside>
+
+在 SSH 中运行以下命令一次（幂等，重复跑也安全）：
+
+```bash
+# 创建 4 个数据目录
+mkdir -p /opt/bangnicms/data/{postgres,redis,storage,caddy}
+
+# 关键：改变 storage 目录拥有者为 UID 1001
+chown -R 1001:1001 /opt/bangnicms/data/storage
+
+# 验证
+ls -la /opt/bangnicms/data/
+# 期望看到 storage 目录 owner 是 "1001 1001"（而不是 "root root"）
+```
+
+<Aside type="tip" title="为什么只需要 chown storage？">
+- `postgres` 容器内部会自动初始化并调用 chown（postgres official image 内置）
+- `redis` / `caddy` 用 root 运行，不要求特定 UID
+- 只有 `bangnicms-server` 为安全起见以 UID 1001 运行，需要手动准备 storage
+</Aside>
+
+### 5.3 在 Portainer 创建 Stack
+
 <Steps>
 
 1. 左侧菜单 → **Stacks** → 右上角 **+ Add stack**
@@ -126,7 +183,7 @@ https://你的服务器IP:9443
 
 </Steps>
 
-### 复制 docker-compose.yml 内容
+### 5.4 复制 docker-compose.yml 内容
 
 打开浏览器新标签页访问：
 
@@ -233,6 +290,67 @@ docker run -d --name portainer --restart=unless-stopped \
 ### `docker pull` 在国内超时
 
 `ghcr.io` 偶发不稳定，把 `docker-compose.yml` 里所有 `ghcr.io/miaochi998/bangnicms-*` 替换为 `ghcr.nju.edu.cn/miaochi998/bangnicms-*`（南大镜像代理），然后 Stacks → Update。
+
+### server 容器 restart loop 报 P1000 或 EACCES
+
+这是**重部署时最常见问题**：在 Portainer 里删了 stack/容器后又重新部署，但 server 一直 restart。
+
+```bash
+docker logs bangnicms-server --tail 30
+```
+
+- 看到 `Error: P1000: Authentication failed against database server` → 老 PG 数据还在 `/opt/bangnicms/data/postgres`，里面的老密码 ≠ 你在 Portainer 重填的新密码
+- 看到 `EACCES: permission denied, mkdir '/data/plugins'` → storage 目录是 docker 用 root 重建的，UID 1001 无写入权限
+
+修复：看下面的「想完全重新部署」。
+
+### 想完全重新部署（清空所有数据）
+
+由于 bind mount 数据**在宿主机目录**中而不在 Docker volume，在 Portainer 里删 stack/容器**不会清除数据**。必须 SSH 到宿主机手动清除。
+
+<Tabs>
+<TabItem label="场景 A：保留同一域名（推荐）" icon="approve-check">
+
+保留 caddy 目录以重用 Let's Encrypt 证书（避免一周同域名重申 5 次被限流）：
+
+```bash
+# 1) Portainer 删 stack 与全部 bangnicms-* 容器
+#    Stacks → bangnicms → Delete；Containers → 勾选 bangnicms-* → Remove
+
+# 2) SSH 删除数据目录（保留 caddy）
+rm -rf /opt/bangnicms/data/postgres /opt/bangnicms/data/redis /opt/bangnicms/data/storage
+
+# 3) 重建目录并修复 storage 权限
+mkdir -p /opt/bangnicms/data/{postgres,redis,storage}
+chown -R 1001:1001 /opt/bangnicms/data/storage
+
+# 4) 在 Portainer 重新走第五、六、七步重创建 stack
+```
+
+</TabItem>
+<TabItem label="场景 B：连域名一起换" icon="warning">
+
+```bash
+# 1) Portainer 删 stack 与全部 bangnicms-* 容器（同上）
+
+# 2) SSH 删除全部数据
+rm -rf /opt/bangnicms/data/{postgres,redis,storage,caddy}
+
+# 3) 重建目录并修复 storage 权限
+mkdir -p /opt/bangnicms/data/{postgres,redis,storage,caddy}
+chown -R 1001:1001 /opt/bangnicms/data/storage
+
+# 4) 在 Portainer 重新创建 stack，为避免 Let's Encrypt 限流请使用不同域名
+```
+
+</TabItem>
+</Tabs>
+
+<Aside type="caution" title="为什么不能直接 rm -rf data && mkdir？">
+- `docker compose up` 会自动重建 bind mount 目录，但创建者是 **root**
+- server 容器以 UID 1001 运行 → 写入 storage 报 EACCES → restart loop
+- 所以必须手动 `mkdir + chown 1001:1001 storage` 预先修复权限
+</Aside>
 
 ## 接下来
 

@@ -1,0 +1,236 @@
+---
+title: 插件开发
+description: 插件包结构、Hooks、Slot 渲染、配置 schema——给插件开发者的完整指南。
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+插件给 BangNiCMS 加**单一功能**——客服浮窗、订阅、统计、轮播图。本文教开发。
+
+## 插件包结构
+
+```
+my-plugin/
+├── manifest.json         必填：插件元数据
+├── README.md
+├── plugin.config.ts      插件配置 schema
+├── src/
+│   ├── index.ts          插件入口
+│   ├── components/       挂到 slot 的 React 组件
+│   │   └── HeroCarousel.tsx
+│   ├── hooks/            生命周期 hooks
+│   │   ├── onMount.ts
+│   │   └── onInquirySubmit.ts
+│   └── injections/       全局注入（如 GA 脚本）
+│       └── headInjection.ts
+└── package.json
+```
+
+## manifest.json
+
+```json
+{
+  "extensionType": "plugin",
+  "extensionKey": "hero-carousel",
+  "name": "首页轮播图",
+  "version": "1.0.0",
+  "author": "Your Name",
+  "description": "...",
+  "compatibility": {
+    "bangnicms": ">=1.0.0"
+  },
+  "supportedSlots": ["homepage-hero", "homepage-features"],
+  "globalInjections": false,
+  "hooks": ["onMount", "onInquirySubmit"]
+}
+```
+
+## 插件类型
+
+### A. Slot 渲染插件
+
+挂到主题的 slot 上展示内容：
+
+```ts
+// src/index.ts
+import { definePlugin } from '@bangnicms/sdk';
+import HeroCarousel from './components/HeroCarousel';
+
+export default definePlugin({
+  slots: {
+    'homepage-hero': HeroCarousel,
+    'homepage-features': HeroCarousel,
+  },
+});
+```
+
+```tsx
+// src/components/HeroCarousel.tsx
+import { usePluginConfig } from '@bangnicms/sdk';
+
+export default function HeroCarousel() {
+  const config = usePluginConfig('hero-carousel');
+  const { frames, autoplay, interval } = config;
+
+  return (
+    <div className="carousel">
+      {frames.map((frame, i) => (
+        <div key={i} className="frame">
+          <img src={frame.image} alt={frame.alt} />
+          <h2>{frame.title}</h2>
+          <a href={frame.ctaUrl}>{frame.ctaText}</a>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+### B. 全局注入插件
+
+往所有页面 `<head>` 注入：
+
+```ts
+// src/injections/headInjection.ts
+import { defineInjection } from '@bangnicms/sdk';
+
+export default defineInjection({
+  position: 'head',
+  render: (config) => `
+    <script async src="https://www.googletagmanager.com/gtag/js?id=${config.measurementId}"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '${config.measurementId}');
+    </script>
+  `,
+});
+```
+
+### C. Hook 触发插件
+
+监听系统事件触发逻辑：
+
+```ts
+// src/hooks/onInquirySubmit.ts
+import { defineHook } from '@bangnicms/sdk';
+
+export default defineHook({
+  event: 'inquiry.created',
+  handler: async (inquiry, config) => {
+    // 发到 CRM
+    await fetch(config.crmEndpoint, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${config.apiKey}` },
+      body: JSON.stringify({
+        firstName: inquiry.contactName,
+        email: inquiry.email,
+        company: inquiry.company,
+      }),
+    });
+  },
+});
+```
+
+## 配置 schema
+
+`plugin.config.ts` 声明运营可调字段：
+
+```ts
+import { definePluginConfig } from '@bangnicms/sdk';
+
+export default definePluginConfig({
+  basic: {
+    enabled: { type: 'boolean', default: true, label: '启用' },
+  },
+  frames: {
+    type: 'array',
+    minItems: 1,
+    maxItems: 5,
+    item: {
+      image: { type: 'image', label: '背景图' },
+      title: { type: 'localized-text', label: '主标题' },
+      subtitle: { type: 'localized-text', label: '副标题' },
+      ctaText: { type: 'localized-text', label: 'CTA 按钮文字' },
+      ctaUrl: { type: 'url', label: 'CTA 链接' },
+    },
+  },
+  autoplay: { type: 'boolean', default: true },
+  interval: { type: 'number', default: 5, min: 1, max: 30 },
+});
+```
+
+后台「插件 → 设置」自动渲染表单。
+
+## 多语言
+
+字段类型 `localized-text` 自动支持多语言：
+
+```ts
+// 配置：
+{
+  title: {
+    type: 'localized-text',
+    default: { 'zh-CN': '春节大促', 'en': 'Spring Festival Sale' }
+  }
+}
+
+// 使用：
+const title = config.title[currentLang] || config.title[defaultLang];
+```
+
+## 多次挂载（独立配置）
+
+如果插件支持挂多次（每次配置独立）：
+
+```ts
+const config = usePluginConfig('hero-carousel', { instanceId: slotInstanceId });
+```
+
+每次挂载实例有独立 `instanceId` → 配置不混。
+
+## 与主题的协作
+
+主题预留 slot，插件挂上去——双方**完全解耦**：
+
+- 主题不知道用户装了什么插件
+- 插件不知道主题是哪个版本
+
+通过**Slot API** 通讯。
+
+## 性能注意
+
+插件代码注入到前台 → **必须高性能**：
+
+- 体积小（< 50 KB）
+- 异步加载（不阻塞 LCP）
+- 懒加载（仅当 slot 进入视口才加载）
+- 不阻塞主线程
+
+## 安全
+
+- **不在前端暴露 API Key**（如果需要 API 调用，通过后端代理）
+- **用户输入校验**（防 XSS）
+- **第三方脚本**：用 SRI（subresource integrity）
+
+## 测试
+
+- 本地：本地运行 BangNiCMS + 加载插件
+- 单元测试：测组件渲染 / hook 逻辑
+- 集成测试：在测试 BangNiCMS 实例上传 zip 测试
+- 多主题：换不同主题测试 slot 兼容
+
+## 打包发布
+
+```bash
+pnpm build
+zip -r my-plugin-v1.0.0.zip dist manifest.json README.md
+```
+
+详见 [打包与发布](/docs/developer/packaging)。
+
+## 接下来
+
+- [模型包开发](/docs/developer/model-package-development) — 字段扩展
+- [API 总览](/docs/developer/api-overview) — 后端 API

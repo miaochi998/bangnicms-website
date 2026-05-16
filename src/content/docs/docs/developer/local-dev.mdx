@@ -1,0 +1,217 @@
+---
+title: 本地开发环境
+description: 搭建 BangNiCMS 本地开发环境——从 git clone 到本地跑通 server / web / admin。
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+开发主题 / 插件 / 模型包前，先把 BangNiCMS **本地跑起来**。
+
+## 系统要求
+
+- **Node.js** ≥ 20
+- **pnpm** ≥ 8（**必须**用 pnpm，不是 npm / yarn）
+- **PostgreSQL** ≥ 14（或 MySQL 8，需要切换 Prisma provider）
+- **Docker**（推荐，自动起依赖）
+- **Git**
+
+## 克隆代码
+
+```bash
+git clone https://github.com/miaochi998/BangNiCMS.git
+cd BangNiCMS
+```
+
+## 安装依赖
+
+```bash
+pnpm install
+```
+
+monorepo 结构：
+
+```
+BangNiCMS/
+├── apps/
+│   ├── server/    后端 NestJS
+│   ├── web/       前台 Astro
+│   └── admin/     后台 Next.js
+├── packages/
+│   ├── shared-types/
+│   ├── sdk/
+│   └── ...
+└── infra/
+    └── scripts/
+```
+
+## 配置环境变量
+
+```bash
+cp .env.example .env
+```
+
+按需要填：
+
+```
+BANGNICMS_DATABASE_URL=postgresql://...
+BANGNICMS_SERVER_PORT=3000
+BANGNICMS_WEB_PORT=4321
+BANGNICMS_ADMIN_PORT=3001
+```
+
+## 启动 / 重启
+
+**必须**用提供的脚本：
+
+```bash
+pnpm restart:local
+```
+
+脚本自动：
+
+1. 停止已跑的进程
+2. 启动 Docker 依赖（PostgreSQL）
+3. `pnpm install`
+4. Prisma generate + migrate + seed
+5. 启动 server、web、admin
+6. 健康检查
+
+**不要**手动 `npm run dev`——会绕过迁移和健康检查。
+
+## 验证
+
+| 服务 | URL |
+|---|---|
+| 后台 admin | http://localhost:3001 |
+| 前台 web | http://localhost:4321 |
+| API server | http://localhost:3000 |
+| API 文档 | http://localhost:3000/api/docs |
+
+默认管理员账号：
+
+- 用户名：`admin`
+- 密码：`admin123`（首次登录强制改）
+
+## 开发流程
+
+### 改主题代码
+
+主题源码在 `apps/web/src/themes/` 下。
+
+修改代码 → Astro 自动热重载。
+
+### 开发新主题
+
+```bash
+# 在 apps/web/src/themes/ 下创建新主题目录
+cp -r official-site my-new-theme
+
+# 修改 manifest.json + 代码
+
+# 后台「扩展市场 → 主题」上传 zip 测试
+```
+
+### 改插件 / 模型包
+
+类似——在 `packages/extensions/` 下开发。
+
+### 数据库迁移
+
+如果改了 Prisma schema：
+
+```bash
+pnpm prisma migrate dev --name my_change
+```
+
+## 调试
+
+### 后端
+
+后端 NestJS 默认开 debug 端口 9229，VSCode 配 launch.json：
+
+```json
+{
+  "type": "node",
+  "request": "attach",
+  "port": 9229,
+  "name": "Attach to Server"
+}
+```
+
+### 前端
+
+浏览器 F12 + 主题代码加 console.log。
+
+## 常用命令
+
+| 命令 | 用 |
+|---|---|
+| `pnpm restart:local` | 完整重启 |
+| `pnpm restart:local:stop` | 停止所有服务 |
+| `pnpm restart:local:status` | 查看状态 |
+| `pnpm restart:local:logs:server` | 查看 server 日志 |
+| `pnpm test` | 跑单元测试 |
+| `pnpm test:e2e` | 跑 E2E 测试 |
+| `pnpm typecheck` | TypeScript 类型检查 |
+| `pnpm lint` | 代码 lint |
+| `pnpm build` | 生产构建 |
+
+## E2E 测试
+
+E2E 测试位于 `tests/e2e/`：
+
+```bash
+pnpm test:e2e
+```
+
+详见 `tests/e2e/README.md`。
+
+**贡献新功能时必须配套加 E2E 测试**。
+
+## 数据 seed
+
+`pnpm restart:local` 会自动 seed 一些测试数据：
+
+- 默认管理员
+- 示例语言
+- 示例分类
+- 示例产品 / 文章
+
+如果想重置：
+
+```bash
+pnpm prisma migrate reset
+pnpm restart:local
+```
+
+<Aside type="caution">
+**`prisma migrate reset` 会删全部数据**——只在本地环境用。
+</Aside>
+
+## 常见问题
+
+### `pnpm install` 失败
+
+- 检查 Node 版本（≥ 20）
+- 清理 node_modules + pnpm-lock.yaml 重装
+- 看错误信息——通常是某个依赖兼容问题
+
+### `restart:local` 卡住
+
+- 检查端口是否被占用（让脚本停止再重启）
+- 看 `/tmp/bangnicms-*.log` 查具体错
+
+### 数据库连接失败
+
+- 确认 Docker 启动了
+- 确认 `.env` 中的 `BANGNICMS_DATABASE_URL` 正确
+- `docker ps` 看 postgres 容器在跑
+
+### 端口冲突
+
+改 `.env` 中的端口配置。**不要**在代码里硬编码端口。
+
+## 接下来
+
+- [打包与发布](/docs/developer/packaging) — 打包 zip
+- [贡献指南](/docs/developer/contributing) — 提交 PR

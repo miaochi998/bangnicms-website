@@ -1,0 +1,104 @@
+---
+/**
+ * 文档截图占位组件。
+ *
+ * 使用方式：
+ *   <Screenshot src="/screenshots/pages/new-page-button.png" caption="后台页面列表 → 新建页面按钮" />
+ *
+ * 当图片文件不存在（src 留空 / 文件未上传）时，自动显示"待补充截图"占位框；
+ * 当 src 有效时，渲染为带说明的图。
+ *
+ * 截图存放约定：
+ *   - 路径：public/screenshots/<章节名>/<具体描述>.png
+ *   - 命名：英文小写 + 连字符（如 `new-page-button.png`）
+ *   - 尺寸：宽度建议 1200-1600px，PNG 或 WebP
+ *   - alt：必填，给屏幕阅读器使用
+ */
+interface Props {
+  /** 图片路径，建议 /screenshots/<section>/<name>.png；留空时显示占位框 */
+  src?: string;
+  /** 图下的文字说明 */
+  caption: string;
+  /** 图片 alt 文本（无障碍）；留空时使用 caption */
+  alt?: string;
+  /** 占位框中的额外提示文字 */
+  hint?: string;
+}
+
+const { src, caption, alt, hint } = Astro.props;
+const imageAlt = alt ?? caption;
+const hasImage = Boolean(src && src.trim().length > 0);
+---
+
+<figure class="docs-screenshot">
+  {hasImage ? (
+    <img src={src} alt={imageAlt} loading="lazy" />
+  ) : (
+    <div class="docs-screenshot__placeholder">
+      <div class="docs-screenshot__placeholder-icon" aria-hidden="true">📷</div>
+      <div class="docs-screenshot__placeholder-text">
+        <strong>待补充截图</strong>
+        {hint && <span class="docs-screenshot__placeholder-hint">{hint}</span>}
+      </div>
+    </div>
+  )}
+  <figcaption>{caption}</figcaption>
+</figure>
+
+<style>
+  .docs-screenshot {
+    margin: 1.5rem 0;
+    padding: 0;
+  }
+
+  .docs-screenshot img {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid var(--sl-color-gray-5);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .docs-screenshot__placeholder {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem 1.75rem;
+    background: var(--sl-color-bg-nav);
+    border: 2px dashed var(--sl-color-gray-4);
+    border-radius: 8px;
+    color: var(--sl-color-gray-2);
+  }
+
+  .docs-screenshot__placeholder-icon {
+    font-size: 1.75rem;
+    flex-shrink: 0;
+  }
+
+  .docs-screenshot__placeholder-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+  }
+
+  .docs-screenshot__placeholder-text strong {
+    color: var(--sl-color-text);
+    font-size: 0.95rem;
+  }
+
+  .docs-screenshot__placeholder-hint {
+    font-size: 0.85rem;
+    color: var(--sl-color-gray-3);
+  }
+
+  .docs-screenshot figcaption {
+    margin-top: 0.6rem;
+    font-size: 0.85rem;
+    color: var(--sl-color-gray-3);
+    text-align: center;
+    font-style: italic;
+  }
+</style>

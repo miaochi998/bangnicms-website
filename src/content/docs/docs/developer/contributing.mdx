@@ -1,0 +1,218 @@
+---
+title: 贡献指南
+description: 给 BangNiCMS 开源社区贡献代码、报告 bug、参与讨论——给社区贡献者的入口。
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+BangNiCMS 是开源项目——欢迎社区贡献。本节讲怎么参与。
+
+## 贡献方式
+
+| 方式 | 谁适合 |
+|---|---|
+| **报 bug** | 所有用户 |
+| **提建议** | 所有用户 |
+| **提 PR** | 开发者 |
+| **写文档** | 任何人 |
+| **回答问题** | 熟悉系统的人 |
+| **翻译** | 母语者 |
+| **设计** | 设计师 |
+
+## 报 bug
+
+### 在哪报
+
+- **GitHub Issues**：https://github.com/miaochi998/BangNiCMS/issues
+
+### 报告内容
+
+```markdown
+**Bug 描述**
+[简短描述]
+
+**重现步骤**
+1. 进入 ... 页
+2. 点 ...
+3. 看到 ...
+
+**期望行为**
+应该 ...
+
+**实际行为**
+实际 ...
+
+**环境**
+- BangNiCMS 版本：1.5.0
+- 浏览器：Chrome 120
+- OS：macOS 14
+- 主题：official-site / 其他
+
+**截图 / 录屏**
+（贴图）
+
+**额外信息**
+（日志、相关 issue 链接）
+```
+
+### 安全漏洞
+
+**不要在公开 Issue 报告**——发邮件给 `security@bangnicms.com`（或类似官方安全联系）。
+
+## 提建议
+
+**好的建议**：
+
+- 描述**问题**（不只是要功能）
+- 说明**用户场景**
+- 提供**例子**
+
+**例**：
+
+> "我希望 BangNiCMS 支持 X 功能"
+>
+> 改为：
+>
+> "我经营 5 家工业设备站，每次手动同步内容到这 5 个站极费时。希望有一个 'Hub' 模式让一处编辑多站发布。"
+
+## 提 PR
+
+### 准备工作
+
+<Steps>
+
+1. **fork** 仓库到自己账号
+
+2. **clone** 自己的 fork
+
+3. 创建新分支（不要直接改 main）：
+
+   ```bash
+   git checkout -b feat/my-feature
+   ```
+
+4. 搭建本地环境（[本地开发环境](/docs/developer/local-dev)）
+
+5. 写代码 + 测试
+
+6. **commit 规范**（详见下文）
+
+7. **push** + **提 PR** 到 main 仓库的 `main` 分支
+
+</Steps>
+
+### Commit 规范
+
+按 **Conventional Commits**：
+
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+**type**：
+
+- `feat`：新功能
+- `fix`：修 bug
+- `docs`：文档
+- `style`：代码格式（不影响逻辑）
+- `refactor`：重构
+- `test`：测试
+- `chore`：维护
+
+**例**：
+
+```
+feat(inquiry): support multi-language inquiry templates
+
+Allow operators to customize the auto-reply email per language.
+Defaults to inheriting from default language if not set.
+
+Closes #123
+```
+
+### PR 要求
+
+- [ ] **小而专注**（一个 PR 解决一个问题）
+- [ ] **有测试**（单元测试 + E2E 如适用）
+- [ ] **typecheck 通过**（`pnpm typecheck`）
+- [ ] **lint 通过**（`pnpm lint`）
+- [ ] **所有现有测试通过**
+- [ ] **更新文档**（如适用）
+- [ ] **changelog 加条目**
+
+### Code Review
+
+- **不要因为被 review 而沮丧** —— 是协作流程
+- **回复每条评论**（即使是"同意，已修改"）
+- **不要硬扛**——有道理的建议接受
+- **耐心**——大型项目 review 可能 1-2 周
+
+## 写文档
+
+文档在 `bangnicms-website` 仓库（与 BangNiCMS 主仓分离）：
+
+```bash
+git clone https://github.com/miaochi998/bangnicms-website.git
+```
+
+文档用 **Astro Starlight** 写，源码在 `src/content/docs/`。
+
+**文档贡献**：
+
+- 修错别字
+- 加截图（运营文档大量需要）
+- 翻译（中文 → 英文等）
+- 写 tutorial / 案例
+
+## 社区规范
+
+### 行为准则
+
+- **互相尊重**——不同观点是正常的
+- **包容**——不歧视任何人
+- **建设性**——批评针对代码不针对人
+- **耐心**——新人会有"愚蠢问题"，要友好
+
+### 不允许
+
+- 人身攻击
+- 政治 / 宗教争论
+- 商业广告（除非贡献相关）
+- 恶意行为
+
+违规 → 警告 → 暂时禁言 → 永久封禁。
+
+## 沟通渠道
+
+| 渠道 | 用途 |
+|---|---|
+| **GitHub Issues** | bug 报告、功能建议 |
+| **GitHub Discussions** | 问答、想法 |
+| **Discord / 微信群** | 实时交流 |
+| **官方博客** | 教程、公告 |
+
+## 商业贡献
+
+如果你是**公司开发者**贡献给开源：
+
+- 让法务**审查 license 兼容性**
+- 你的雇佣合同可能要求**特别授权**
+- 重大贡献可能**签 CLA**（Contributor License Agreement）
+
+## 维护者列表
+
+由 BangNiCMS 维护团队维护——查看仓库 README 看当前活跃维护者。
+
+## 致谢
+
+每个版本的 release notes 会**致谢贡献者**——你的名字会在 BangNiCMS 历史中。
+
+## 接下来
+
+- [本地开发环境](/docs/developer/local-dev) — 搭建环境
+- [API 总览](/docs/developer/api-overview) — 系统设计
+- 加入 Discord / 微信群交流

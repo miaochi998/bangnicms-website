@@ -1,0 +1,137 @@
+---
+title: 开发者总览
+description: BangNiCMS 开发者文档全景——主题开发、插件开发、模型包开发、API 调用。给开发者团队的入口。
+---
+
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
+
+本组文档面向**开发者**——不是运营。如果你只是用 BangNiCMS 不开发扩展，可以跳过这组。
+
+## 你能开发什么
+
+<CardGrid>
+  <Card title="主题（Theme）">
+    决定整站视觉的代码包。包含布局、颜色、组件、首页结构。
+
+    [详见 →](/docs/developer/theme-development)
+  </Card>
+  <Card title="插件（Plugin）">
+    扩展具体功能的小代码包。如客服浮窗、订阅、统计、轮播图。
+
+    [详见 →](/docs/developer/plugin-development)
+  </Card>
+  <Card title="模型包（Model Package）">
+    给内容追加字段的扩展。比如给产品加"型号"、"规格"等行业字段。
+
+    [详见 →](/docs/developer/model-package-development)
+  </Card>
+  <Card title="自定义集成">
+    通过 API 集成第三方系统（CRM、ERP、邮件服务）。
+
+    [详见 →](/docs/developer/api-overview)
+  </Card>
+</CardGrid>
+
+## BangNiCMS 技术栈
+
+| 层 | 技术 |
+|---|---|
+| **前台 / 主题** | Astro + React + TypeScript |
+| **后台 / 管理** | Next.js + React + TypeScript |
+| **后端 / API** | NestJS + TypeScript |
+| **数据库** | PostgreSQL（默认） / MySQL |
+| **ORM** | Prisma |
+| **存储** | 本地文件系统 / OSS / S3 |
+| **包管理** | pnpm Workspaces |
+
+## 开发文档地图
+
+| 文档 | 内容 |
+|---|---|
+| [API 总览](/docs/developer/api-overview) | REST API 入口、认证、版本 |
+| [主题开发](/docs/developer/theme-development) | 主题包结构、模板系统、Slot 机制 |
+| [插件开发](/docs/developer/plugin-development) | 插件包结构、Hooks、Slot 渲染 |
+| [模型包开发](/docs/developer/model-package-development) | 字段定义、迁移、验证 |
+| [本地开发环境](/docs/developer/local-dev) | 搭建开发环境 |
+| [打包与发布](/docs/developer/packaging) | 打包 zip、发布、分发 |
+| [贡献指南](/docs/developer/contributing) | 提 PR、报 bug、社区规范 |
+
+## 谁来读这些文档
+
+- **公司内部开发者**：定制主题 / 插件 / 集成
+- **外包开发者**：按需开发
+- **社区贡献者**：贡献官方主题 / 插件
+- **架构师**：评估技术方案
+
+## 学习路径
+
+### 新手（第一次接触 BangNiCMS）
+
+```
+1. 先用 BangNiCMS 当用户体验一遍
+   ↓
+2. 看运营文档了解功能
+   ↓
+3. 看本组的 [API 总览]
+   ↓
+4. 搭建本地开发环境
+   ↓
+5. 先做小修改：改主题颜色 / 加 1 个字段
+```
+
+### 中级（熟悉 React / TypeScript）
+
+```
+1. 看 [主题开发] 完整文档
+   ↓
+2. fork 内置主题修改
+   ↓
+3. 打包 + 安装到自己站点
+   ↓
+4. 学 [插件开发]
+```
+
+### 高级
+
+```
+1. 阅读官方主题源码
+   ↓
+2. 写复杂插件（如 CRM 集成）
+   ↓
+3. 贡献到官方
+```
+
+## 开发原则
+
+### 1. 不破坏向后兼容
+
+升级 BangNiCMS 时，**老的主题 / 插件应该仍然工作**。
+
+### 2. 配置 vs 硬编码
+
+把可变的配置**暴露给运营**，避免硬编码（详见 [插件配置](/docs/plugins/configuration)）。
+
+### 3. 多语言友好
+
+所有用户可见文案**支持 i18n**——不要硬编码"Submit"按钮。
+
+### 4. 性能优先
+
+延迟加载、CDN、缓存——做好性能。
+
+### 5. 安全优先
+
+- API Key 不放代码
+- 用户输入**先校验**
+- XSS / CSRF 防护
+
+## 开发者社区
+
+- **GitHub**：BangNiCMS 主仓库
+- **Discord / 微信群**：实时交流
+- **Issue Tracker**：bug 报告
+- **博客 / 教程**：进阶文章
+
+## 接下来
+
+[API 总览 →](/docs/developer/api-overview)

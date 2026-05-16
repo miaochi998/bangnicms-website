@@ -1,0 +1,50 @@
+# ============================================================
+# BangNiCMS 官方站 — Portainer 堆栈专用 docker-compose
+# ------------------------------------------------------------
+# 用途：Portainer Repository 模式部署
+# 部署模式：Portainer 自动 git clone → docker compose build → up
+# 触发更新：仓库 push 后 · Portainer 内 "Pull and redeploy" 一键重 build
+#
+# 与 docker-compose.yml 的区别：
+#   - 用 build: . 让 Portainer 自动构建镜像（含 Astro build 步骤）
+#   - 不挂载 ./dist · 产物已嵌入镜像
+#   - 不挂载 ./Caddyfile · 配置已嵌入镜像
+#   - 持久化卷用 Docker named volume · Portainer 可见可备份
+# ============================================================
+
+services:
+  website:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: bangnicms-website:latest
+    container_name: bangnicms-website
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN:-www.bonnei.com}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?请在 Portainer Environment variables 填 ADMIN_EMAIL（用于 Let's Encrypt 续期通知）}
+    volumes:
+      # Caddy 证书与 ACME 账户（保护 Let's Encrypt 不被限流）
+      - caddy_data:/data
+      # Caddy 运行时配置
+      - caddy_config:/config
+      # 访问日志（按需查看 · 100MB 自动滚动）
+      - caddy_logs:/var/log/caddy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  caddy_data:
+    name: bangnicms-website-caddy-data
+  caddy_config:
+    name: bangnicms-website-caddy-config
+  caddy_logs:
+    name: bangnicms-website-caddy-logs

@@ -21,7 +21,7 @@ services:
       - "443:443"
       - "443:443/udp"
     environment:
-      DOMAIN: ${DOMAIN:-cms.bonnei.com}
+      DOMAIN: ${DOMAIN:-www.bonnei.com}
       ADMIN_EMAIL: ${ADMIN_EMAIL:?请在 .env 填 ADMIN_EMAIL（用于 Let's Encrypt 续期通知）}
     volumes:
       # 静态站构建产物（由 GitHub Actions 推送）

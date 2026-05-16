@@ -1,0 +1,229 @@
+---
+title: URL 策略与语言段
+description: 多语言站点网址怎么生成——路径前缀 vs 子域名两种策略的取舍、自定义网址段、hreflang 国际化 SEO。
+---
+
+import { Aside, Steps, Card, CardGrid } from '@astrojs/starlight/components';
+import Screenshot from '../../../../components/Screenshot.astro';
+
+多语言站点的网址有两种主流方式：**路径前缀**（如 `/en/about-us`）和 **子域名**（如 `en.example.com/about-us`）。
+
+BangNiCMS 两种都支持，在「站点设置」中切换。这一篇帮你**做出选择 + 落地操作 + 处理好 SEO**。
+
+后台入口：**站点设置 → URL 策略**
+
+<Screenshot caption="站点设置中的 URL 策略选择" hint="单选按钮：路径前缀（默认） / 子域名" />
+
+## 两种策略对比
+
+<CardGrid>
+  <Card title="路径前缀（推荐多数场景）">
+    `https://example.com/`（默认语言）
+
+    `https://example.com/en/`（英文）
+
+    `https://example.com/ja/`（日文）
+
+    **优势**：
+    - 单域名 + 单 SSL 证书，配置最简单
+    - 部署成本最低
+    - 中小型站点首选
+
+    **劣势**：
+    - 默认语言裸 URL 与子路径混合，部分 SEO 工具识别更复杂
+  </Card>
+
+  <Card title="子域名">
+    `https://example.com/`（默认语言）
+
+    `https://en.example.com/`
+
+    `https://ja.example.com/`
+
+    **优势**：
+    - SEO 国际化信号更强（搜索引擎把每个子域名视为独立站点）
+    - 各语言版本可以接不同 CDN 节点（亚洲访问 ja.example.com 走日本节点）
+    - 大型国际化品牌站常用
+
+    **劣势**：
+    - 每个子域名需要独立 DNS 记录
+    - SSL 证书需要支持通配符（`*.example.com`）或多证书
+    - 部署运维成本更高
+  </Card>
+</CardGrid>
+
+**怎么选**：
+
+| 你的情况 | 推荐 |
+|---|---|
+| 单一品牌、3 种以内语言、运维资源有限 | **路径前缀** |
+| 跨国大品牌、5+ 种语言、有专门运维团队 | **子域名** |
+| 还不确定 | **路径前缀**（迁移成本低，未来可改） |
+
+## 默认语言永远是裸 URL
+
+**重要规则**：无论哪种策略，**默认语言永远走裸 URL**。
+
+```
+默认语言（中文）：example.com/about-us
+英文：           example.com/en/about-us（路径前缀）
+                 en.example.com/about-us（子域名）
+```
+
+**为什么？** 这是国际化 SEO 的标准做法：
+
+- 主要市场（默认语言）享受最干净的 URL，搜索权重最集中
+- 其他语言通过额外的"段"区分
+
+## 切换 URL 策略
+
+<Steps>
+
+1. 进 **站点设置 → URL 策略**
+
+2. 选择目标策略（路径前缀 / 子域名）
+
+3. **保存**
+
+4. （仅子域名）让运维：
+   - 给每种非默认语言**配 DNS 记录**：`en.example.com` / `ja.example.com` 等指向同一服务器
+   - SSL 证书覆盖所有子域名（推荐通配符证书 `*.example.com`）
+   - 在反向代理（Caddy/Nginx）配置子域名转发到同一 BangNiCMS 实例
+
+</Steps>
+
+<Aside type="caution">
+**切换策略对 SEO 影响巨大**——所有非默认语言的 URL 都会变。
+
+**安全切换流程**：
+
+1. 切换前，让运维**备份当前 SEO 数据**（搜索排名、外链清单）
+2. 切换后，让运维**配 301 重定向**：旧 URL → 新 URL
+   - 路径前缀 → 子域名：`/en/* → en.example.com/*`
+   - 子域名 → 路径前缀：`en.example.com/* → /en/*`
+3. 在 Search Console 提交"地址变更"通知所有搜索引擎
+4. 观察 1-2 周流量恢复
+
+**强烈不建议**频繁切换——每次都伤 SEO。建议在站点早期定下来。
+</Aside>
+
+## 自定义网址段
+
+每种非默认语言有一个「**网址段**」字段（在「语言管理」编辑该语言时设置）：
+
+- **默认值**：完整语言代码加斜杠（如 `/en-US/`）
+- **可自定义**：缩短为 `/en/`、改成拼音 `/zhongwen/` 等
+
+**举例**：
+
+| 语言 | 默认网址段 | 自定义后 | 最终 URL |
+|---|---|---|---|
+| 美式英语（en-US） | `/en-US/` | `/en/` | `example.com/en/about-us` |
+| 简体中文（zh-CN） | `/zh-CN/` | `/zh/` | `example.com/zh/about-us` |
+| 日语（ja-JP） | `/ja-JP/` | `/ja/` | `example.com/ja/about-us` |
+
+<Screenshot caption="编辑语言时的「网址段」字段" hint="语言编辑弹窗里的「网址段」输入框，旁边附「默认 /{语言代码}/」提示" />
+
+**推荐做法**：
+
+- 多数站点使用**短代码**（`/en/` 而不是 `/en-US/`）—— 更短的 URL 用户体验更好
+- 如果业务区分美式 vs 英式英语，**保留地区码**（`/en-US/` 和 `/en-GB/`）
+
+## 找不到该语言版本怎么办
+
+用户访问 `/en/some-product`，但这个产品的英文翻译还没完成（状态是「进行中」）：
+
+| 主题行为 | 体验 |
+|---|---|
+| **返回 404** | 用户看到"页面未找到"页 |
+| **重定向到默认语言版本** | 跳转到 `/some-product`（中文版） |
+
+具体行为由**主题决定**——系统主题默认行为是**自动跳默认语言**，避免用户卡在 404。
+
+## hreflang 标签自动生成
+
+**hreflang** 是 SEO 国际化的关键标签，告诉搜索引擎"这页有多种语言版本"。
+
+BangNiCMS **自动注入**——你不需要任何配置，每种语言的页面 `<head>` 里都会有：
+
+```html
+<link rel="alternate" hreflang="zh-CN" href="https://example.com/about-us">
+<link rel="alternate" hreflang="en-US" href="https://example.com/en/about-us">
+<link rel="alternate" hreflang="ja-JP" href="https://example.com/ja/about-us">
+<link rel="alternate" hreflang="x-default" href="https://example.com/about-us">
+```
+
+**搜索引擎看到这些标签后**：
+
+- 美国用户搜索 → 优先展示 `en-US` 版本
+- 日本用户搜索 → 优先展示 `ja-JP` 版本
+- 不知道用户语言 → 展示 `x-default`（默认语言）
+
+**前提**：
+
+- 必须**至少 2 种语言**已启用
+- 每种语言版本的状态是**已完成**（未完成的语言不会被注入 hreflang，避免引导用户去不存在的页）
+
+## 用户切换语言时发生了什么
+
+前台典型有**语言切换器**（系统主题在 Header 右上角）：
+
+<Screenshot caption="前台语言切换器" hint="Header 右上角的语言切换下拉，列出已启用的所有语言" />
+
+用户从中文切到英文：
+
+1. 当前 URL：`example.com/products/x500`
+2. 用户点击"English"
+3. 前台跳转到：`example.com/en/products/x500`（路径前缀策略）
+   或：`en.example.com/products/x500`（子域名策略）
+4. 浏览器记住用户选择 → 下次直接跳英文版
+
+**默认语言的判断逻辑**（用户首次访问）：
+
+1. 浏览器接受语言（`Accept-Language` header）
+2. 如果有匹配的已启用语言 → 自动跳该语言
+3. 否则 → 走默认语言
+
+举例：日本用户首次访问 `example.com/about-us`：
+
+- 浏览器发送 `Accept-Language: ja-JP`
+- 系统检测到 `ja-JP` 已启用 → 自动跳 `/ja/about-us`
+- 用户看到日文版
+
+## 常见问题
+
+### 我能让一种语言用完全不同的域名吗（如 `tokyo.com`）？
+
+**当前不支持**——只能在同一根域名下用子域名（`ja.example.com`）。如果业务真的需要多个独立域名，建议**部署多个 BangNiCMS 实例**，每个站点服务一个域名。
+
+### 「网址段」改了会有副作用吗？
+
+**会**——所有该语言下的 URL 都会变。
+
+如果该语言已被搜索引擎收录或有外部友链，**强烈建议**：
+
+1. 让运维配 301 重定向：旧网址段 → 新网址段（如 `/en-US/* → /en/*`）
+2. Search Console 提交"地址变更"
+3. 通知所有外部友链方更新链接
+
+### 默认语言能改网址段吗？
+
+**改了也不生效**——默认语言永远是裸 URL。如果你切换了默认语言，原默认语言的网址段会重新生效，新默认语言的网址段失效。
+
+### `hreflang` 标签能手动改吗？
+
+不能。系统自动生成、自动注入。**手动改可能破坏 SEO 结构**——除非你是深度 SEO 专家、且在升级版本时维护好这些标签，否则不建议覆盖。
+
+### 子域名策略下，我在哪配 DNS？
+
+到你的域名提供商（如 Namesilo / Cloudflare / 阿里云）控制台，添加 A / CNAME 记录把每个子域名指向同一服务器 IP。具体做法因提供商而异——**这是运维同学的工作**，问他们就行。
+
+### 切换 URL 策略后多久能恢复 SEO 排名？
+
+通常 **2-8 周**。期间排名会有波动是正常的。**关键是 301 重定向必须配对**——任何一个旧 URL 没配重定向 = 那条权重彻底丢失。
+
+## 接下来
+
+- [UI 文案 i18n](/docs/i18n/ui-i18n) — UI 字典的独立翻译
+- 站点设置（建设中）— 完整的站点设置说明
+- DNS 与 HTTPS（[已上线](/docs/deploy/dns-and-https)）— 子域名策略所需的 DNS 配置

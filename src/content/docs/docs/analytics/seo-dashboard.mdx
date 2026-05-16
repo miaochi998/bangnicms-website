@@ -1,0 +1,226 @@
+---
+title: SEO 数据看板
+description: 搜索引擎排名、关键词、外链、Core Web Vitals——SEO 复盘的关键数据。
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import Screenshot from '../../../../components/Screenshot.astro';
+
+SEO 数据是**慢速反馈**——做了 SEO 调整后，1-3 个月才看到效果。但**长期复利极高**——好的 SEO 让你**永久免费**获取相关搜索流量。
+
+<Screenshot caption="SEO 数据看板" hint="顶部摘要 + 关键词排名变化图 + 外链数量趋势 + Core Web Vitals 三角图" />
+
+## 核心 SEO 指标
+
+| 指标 | 含义 | 优秀 |
+|---|---|---|
+| **整站收录数** | 搜索引擎已索引的页数 | 接近内容总数 |
+| **关键词总排名** | 排名 Top 100 的关键词数 | 持续增长 |
+| **首页关键词数** | 排名 Top 10 的关键词数 | 越多越好 |
+| **整站外链数** | 别的站给你的链接 | 持续增长 |
+| **Core Web Vitals** | LCP / FID / CLS 三项 | 全绿 |
+
+## SEO 数据来源
+
+**BangNiCMS 内置不直接抓 Google 数据**——必须**接外部工具**：
+
+| 工具 | 提供 |
+|---|---|
+| **Google Search Console**（必接） | Google 关键词、排名、点击率、收录 |
+| **百度站长平台** | 百度关键词、收录、抓取 |
+| **Bing Webmaster** | Bing / DuckDuckGo |
+| **Ahrefs / SEMrush** | 关键词排名、竞品分析、外链（付费） |
+| **PageSpeed Insights** | Core Web Vitals |
+
+详见 [整合外部工具](/docs/analytics/external-integration)。
+
+## 关键词排名
+
+**最重要的 SEO 数据**——排名直接决定流量。
+
+**Search Console 数据**：
+
+| 关键词 | 排名 | 月展现 | 月点击 | CTR |
+|---|---|---|---|---|
+| 工业激光切割机 | 5 | 12000 | 800 | 6.7% |
+| 1000W 激光切割 | 8 | 5000 | 200 | 4.0% |
+| 激光切割技术 | 15 | 3000 | 50 | 1.7% |
+| BangNiCMS | 1 | 500 | 250 | 50% |
+
+**洞察**：
+
+- **品牌词第 1**（正常）
+- **核心词排第 5** → 加大优化能进 Top 3
+- **第 15 名** → 接近 Top 10，再优化能拿到大流量
+
+## CTR 提升
+
+排名相同的情况下，**点击率（CTR）**决定真实流量：
+
+| 排名 | 平均 CTR | 注意 |
+|---|---|---|
+| 1 | 30% | |
+| 2 | 15% | |
+| 3 | 10% | |
+| 4-5 | 5-7% | |
+| 6-10 | 2-4% | |
+| 11+ | < 2% | 翻页才能看到 |
+
+**提升 CTR**：
+
+- **SEO 标题**写得吸引人（详见 [AI SEO 写作](/docs/ai/seo-writing)）
+- **SEO 描述**说价值
+- **结构化数据**（评价、价格、FAQ）让搜索结果**显得突出**
+
+## 外链分析
+
+**外链 = 别的站点链向你**——这是 SEO 最强信号。
+
+**外链质量金字塔**：
+
+```
+顶级（最有效）：行业权威媒体、知名品牌官网
+   ↑
+中级：相关行业博客、合作伙伴
+   ↑
+基础：B2B 目录、社交档案
+   ↑
+垃圾（有害）：自动外链工厂、付费 PBN
+```
+
+<Aside type="caution">
+**别买垃圾外链**——
+
+- Google 能识别 → 反而**降权**
+- 一旦被惩罚，恢复需要 6 个月以上
+- 有些"SEO 公司"卖的是垃圾包
+
+**正经获取外链**：
+
+- 写高质量内容自然吸引
+- PR 公关稿
+- 合作伙伴互链
+- 行业会议演讲带链接
+- 客户案例（让客户在自己站点提到你）
+</Aside>
+
+## Core Web Vitals
+
+Google 现在把**用户体验**当作排名信号：
+
+| 指标 | 含义 | 优秀 | 差 |
+|---|---|---|---|
+| **LCP** | 主内容加载时间 | < 2.5s | > 4s |
+| **FID** | 首次交互响应 | < 100ms | > 300ms |
+| **CLS** | 视觉布局偏移 | < 0.1 | > 0.25 |
+
+**怎么提升**：
+
+- **LCP 优化**：CDN、图片懒加载、服务器响应时间
+- **FID 优化**：减少 JS 阻塞、Web Worker
+- **CLS 优化**：图片宽高声明、避免动态插入元素
+
+让运维 / 开发者跑 [PageSpeed Insights](https://pagespeed.web.dev) 测试。
+
+## 收录监控
+
+**收录 = 你的页被搜索引擎收进索引**：
+
+- 没收录 → 永远搜不到
+- 已收录 → 才有可能排名
+
+**怎么看**：
+
+- Search Console "覆盖率"报告
+- Google 搜 `site:yourdomain.com` 看大致数量
+
+**未收录的原因**：
+
+- 站点新（刚上线 1-2 周内常见）
+- robots.txt 屏蔽
+- noindex 标签
+- 内容质量低被搜索引擎拒绝
+- 没有外链 / 内链导引
+
+## 多语言 SEO
+
+**hreflang** 标签让搜索引擎理解多语言：
+
+```html
+<link rel="alternate" hreflang="zh-CN" href="https://example.com/about-us" />
+<link rel="alternate" hreflang="en" href="https://example.com/en/about-us" />
+<link rel="alternate" hreflang="ja" href="https://example.com/ja/about-us" />
+<link rel="alternate" hreflang="x-default" href="https://example.com/about-us" />
+```
+
+BangNiCMS **自动注入 hreflang**——不需要运营做什么。
+
+详见 [URL 策略与语言段 - 默认语言永远是裸网址](/docs/i18n/url-strategy)。
+
+**多语言 SEO 监控**：
+
+- 各语言版本的收录数
+- 各语言版本的关键词排名
+- 各市场的本地化竞争对手
+
+## 何时看 SEO 数据
+
+| 频率 | 看什么 |
+|---|---|
+| **每周** | 整体趋势、新增关键词 |
+| **每月** | 关键词 Top 50 排名变化、外链增长 |
+| **每季度** | SEO ROI、竞品对比、Core Web Vitals 复测 |
+
+## SEO 失误的几个征兆
+
+⚠️ **流量暴跌 50%+**：搜索引擎降权 / 算法更新
+
+⚠️ **关键词排名集体下降**：核心 SEO 问题
+
+⚠️ **收录数大幅减少**：技术问题（robots / noindex / 抓取错误）
+
+⚠️ **外链减少**：被恶意去链 / 站点降权
+
+⚠️ **Core Web Vitals 变差**：性能下降
+
+**遇到这些**：立刻让运维 + SEO 顾问诊断。
+
+## 常见问题
+
+### 多久能看到 SEO 优化效果？
+
+通常 **1-3 个月**：
+
+- 站点早期：1-2 周
+- 成熟站：1-3 月
+- 大改版：3-6 月
+
+### 我应该花预算买 SEO 工具吗？
+
+**值得**——
+
+- 站点早期：用免费的 Search Console + GA 够用
+- 中型站：每月 ¥1000-3000 买 Ahrefs / SEMrush 入门版
+- 大型站：每月 ¥10000+ 买专业版 + 雇 SEO 顾问
+
+ROI 通常 5-50 倍（1 元投入返 5-50 元流量价值）。
+
+### Search Console 数据和 GA 数据为啥对不上？
+
+**数据来源不同**：
+
+- Search Console：搜索引擎统计（点击 = 用户从搜索结果点你）
+- GA：浏览器统计（PV = 用户实际打开页面）
+
+**差异常见原因**：
+
+- 用户点了搜索结果但页面没加载完就走 → SC 计入 / GA 不计入
+- 用户开了页面但启用了广告屏蔽 → SC 计入 / GA 不计入
+- 跨设备访问 / 时区差异
+
+通常 **SC 数 ≥ GA 数 ×0.7-1.0** 算正常。
+
+## 接下来
+
+- [整合 Google Analytics / 百度统计](/docs/analytics/external-integration) — 第三方接入
+- [流量与内容表现](/docs/analytics/traffic-content) — 流量细分

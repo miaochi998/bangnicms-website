@@ -2,7 +2,7 @@
 # BangNiCMS 官方站 — Caddy 配置
 # ------------------------------------------------------------
 # 用途：纯静态站托管，自动 HTTPS（Let's Encrypt）
-# 域名：cms.bonnei.com（已备案）
+# 域名：www.bonnei.com（已备案）
 # ============================================================
 
 {
@@ -16,7 +16,7 @@
 }
 
 # ── 主站点 ─────────────────────────────────
-{$DOMAIN:cms.bonnei.com} {
+{$DOMAIN:www.bonnei.com} {
 	# 静态文件根目录
 	root * /srv/dist
 	file_server
@@ -77,6 +77,6 @@
 }
 
 # www 子域跳转主域（可选，如有人输 www.cms.bonnei.com）
-# www.{$DOMAIN:cms.bonnei.com} {
-# 	redir https://{$DOMAIN:cms.bonnei.com}{uri} permanent
+# www.{$DOMAIN:www.bonnei.com} {
+# 	redir https://{$DOMAIN:www.bonnei.com}{uri} permanent
 # }

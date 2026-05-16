@@ -1,0 +1,215 @@
+---
+title: API 总览
+description: BangNiCMS REST API 全景——认证、版本、模块、错误码。给开发者集成第三方系统。
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+BangNiCMS 提供完整的 **REST API**——所有后台能做的事 API 都能做。
+
+## API 入口
+
+```
+基础 URL：https://yourdomain.com/api
+```
+
+## 认证
+
+### 方式 A：用户 Token（推荐）
+
+用户登录后获得 token，请求时携带：
+
+```
+Authorization: Bearer <token>
+```
+
+**适合**：
+
+- 后台管理操作
+- 用户身份相关的操作
+
+### 方式 B：API Key（机器调用）
+
+适合自动化脚本 / 第三方集成：
+
+- 在「用户管理 → API Key」创建
+- 请求时携带：
+
+```
+X-API-Key: <api-key>
+```
+
+**安全建议**：
+
+- API Key **严格保密**（不放代码、不发群）
+- 限制 IP 范围
+- 限制权限范围（只读 / 写）
+- 定期轮换（每 6-12 月）
+
+## 模块概览
+
+| 模块 | 路径 | 用途 |
+|---|---|---|
+| 内容 | `/api/products` `/api/articles` `/api/pages` `/api/downloads` | CRUD 内容 |
+| 分类 / 菜单 | `/api/categories` `/api/menus` | 组织结构 |
+| 媒体 | `/api/media` `/api/media/upload` | 图片 / 文件 |
+| 多语言 | `/api/languages` `/api/i18n` | 语言 / 翻译 |
+| 站点设置 | `/api/site-config` | 站点配置 |
+| 询盘 | `/api/inquiries` | 询盘 |
+| 用户 | `/api/users` | 用户管理 |
+| 扩展 | `/api/extensions` | 主题 / 插件 |
+| AI | `/api/ai/translate` `/api/ai/vision` | AI 调用 |
+
+具体接口看在线 OpenAPI / Swagger 文档（开发环境通常是 `/api/docs`）。
+
+## 通用规范
+
+### 请求
+
+- **Content-Type**：`application/json`（除文件上传 `multipart/form-data`）
+- **方法**：GET / POST / PUT / DELETE 标准 REST
+- **分页**：`?page=1&pageSize=20`
+- **筛选**：`?status=published&category=industrial`
+- **排序**：`?sort=-createdAt`（`-` 表示降序）
+
+### 响应
+
+成功：
+
+```json
+{
+  "data": { ... },
+  "meta": { "total": 100, "page": 1 }
+}
+```
+
+失败：
+
+```json
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Product not found",
+    "details": { ... }
+  }
+}
+```
+
+### 状态码
+
+| 码 | 含义 |
+|---|---|
+| 200 | 成功 |
+| 201 | 创建成功 |
+| 204 | 删除成功（无内容返回） |
+| 400 | 请求参数错 |
+| 401 | 未认证 |
+| 403 | 无权限 |
+| 404 | 资源不存在 |
+| 409 | 冲突（如重名） |
+| 429 | 限流 |
+| 500 | 服务器错 |
+
+## 多语言
+
+请求时通过 query 或 header 指定语言：
+
+```
+GET /api/products/abc?lang=en
+```
+
+或
+
+```
+Accept-Language: en
+```
+
+返回的内容字段为对应语言版本。
+
+## 文件上传
+
+```
+POST /api/media/upload
+Content-Type: multipart/form-data
+
+file: <binary>
+folder: products
+alt: 产品封面
+```
+
+返回：
+
+```json
+{
+  "id": "media_123",
+  "url": "https://cdn.../products/abc.jpg",
+  "size": 102400,
+  ...
+}
+```
+
+详见 [上传与媒体设置](/docs/site-config/upload-media) 的策略。
+
+## Webhook
+
+BangNiCMS 支持向你的系统**主动推送事件**：
+
+| 事件 | 触发时机 |
+|---|---|
+| `inquiry.created` | 新询盘提交 |
+| `inquiry.updated` | 询盘状态变化 |
+| `content.published` | 内容发布 |
+| `content.deleted` | 内容删除 |
+| `user.login` | 用户登录 |
+
+**配置**：「站点设置 → Webhook」添加目标 URL。
+
+**接收**：你的服务接收 POST 请求处理事件。
+
+## 限流
+
+默认限流：
+
+- 普通用户：100 次 / 分钟
+- 高权限：500 次 / 分钟
+- API Key：可配（默认 1000 次 / 分钟）
+
+超出 → 429 错误。
+
+## 版本
+
+- 当前版本：**v1**（路径前缀 `/api`）
+- 未来可能 `/api/v2`
+
+**向后兼容**：我们承诺 v1 至少维护 2 年。
+
+## 开发者工具
+
+- **Swagger UI**：`/api/docs`（开发环境）
+- **Postman Collection**：官方导出
+- **TypeScript SDK**：`@bangnicms/sdk`（npm 包）
+- **CLI**：`bangnicms-cli`（命令行调用）
+
+## 调试技巧
+
+| 工具 | 用 |
+|---|---|
+| **Postman / Insomnia** | 手动测试 |
+| **curl** | 命令行测试 |
+| **Chrome DevTools** | 看浏览器请求 |
+| **API 日志** | 让运维查看 |
+
+## 安全建议
+
+- 永远用 HTTPS
+- API Key 不放前端代码
+- 用户 token 放安全 cookie（HttpOnly / Secure）
+- 输入校验
+- SQL 注入防护（用 ORM 自动防）
+- XSS 防护（输出转义）
+
+## 接下来
+
+- [主题开发](/docs/developer/theme-development) — 主题代码结构
+- [插件开发](/docs/developer/plugin-development) — 插件机制
+- [模型包开发](/docs/developer/model-package-development) — 字段扩展

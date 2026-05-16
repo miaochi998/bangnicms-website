@@ -1,0 +1,250 @@
+---
+title: 打包与发布
+description: 把主题 / 插件 / 模型包打成 zip 发布——给开发者的发布流程。
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+开发完后，**打包 zip**让运营在后台上传安装。本节教你怎么打。
+
+## 打包前检查
+
+- [ ] `manifest.json` 完整、合法
+- [ ] 版本号符合 semver（X.Y.Z）
+- [ ] README.md 写清楚用法
+- [ ] 代码已经测试通过
+- [ ] 没有 `console.log` / 调试代码
+- [ ] 没有 `node_modules`（应该 `.gitignore`）
+- [ ] 没有敏感信息（API Key、密钥）
+- [ ] 体积合理（主题 < 50MB，插件 < 10MB）
+
+## zip 结构
+
+### 主题
+
+```
+my-theme.zip
+└── my-theme/                  # 顶级目录（推荐用 extensionKey）
+    ├── manifest.json
+    ├── README.md
+    ├── theme.config.ts
+    ├── dist/                  # 已构建的代码
+    │   ├── layouts/
+    │   ├── components/
+    │   ├── pages/
+    │   └── styles/
+    ├── public/
+    │   ├── images/
+    │   └── fonts/
+    └── package.json
+```
+
+### 插件
+
+```
+my-plugin.zip
+└── my-plugin/
+    ├── manifest.json
+    ├── README.md
+    ├── plugin.config.ts
+    ├── dist/                  # 已构建的代码
+    │   └── index.js
+    └── package.json
+```
+
+### 模型包
+
+```
+my-model-package.zip
+└── my-model-package/
+    ├── manifest.json
+    ├── README.md
+    ├── fields.ts
+    └── migrations/
+```
+
+## 打包命令
+
+### 方式 A：命令行 zip
+
+```bash
+# 主题
+cd apps/web/src/themes/my-theme
+pnpm build  # 先构建
+cd ..
+zip -r my-theme-v1.0.0.zip my-theme \
+  -x "my-theme/node_modules/*" \
+  -x "my-theme/.git/*" \
+  -x "my-theme/.cache/*"
+```
+
+### 方式 B：用 BangNiCMS CLI
+
+```bash
+bangnicms-cli pack --type theme --version 1.0.0
+```
+
+CLI 自动：
+
+- 跑构建
+- 排除不必要文件
+- 校验 manifest
+- 打 zip
+
+### 方式 C：CI / CD 自动打包
+
+GitHub Actions：
+
+```yaml
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+      - run: pnpm install
+      - run: pnpm build
+      - run: zip -r my-theme-${{ github.ref_name }}.zip dist manifest.json README.md
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: my-theme-*.zip
+```
+
+## 校验 zip
+
+打包后**先在本地测试**：
+
+```bash
+# 模拟上传
+unzip -l my-theme-v1.0.0.zip
+
+# 校验 manifest
+cat my-theme/manifest.json | jq .
+```
+
+## 上传到 BangNiCMS
+
+后台「扩展市场」→ 上传 zip。
+
+## 排除什么
+
+**绝对不能打包进 zip**：
+
+- ❌ `node_modules/`（运行时依赖）
+- ❌ `.git/`（版本控制）
+- ❌ `.env` / `.env.local`（敏感配置）
+- ❌ `*.log`
+- ❌ `coverage/`（测试覆盖率）
+- ❌ 私有 API Key
+- ❌ 客户数据 / 测试用户名密码
+
+**.bangnicmsignore** 文件（如果工具支持）：
+
+```
+node_modules
+.git
+.env*
+*.log
+coverage
+src/__tests__
+```
+
+## 版本号管理
+
+**遵循 semver**：
+
+| 改动 | 版本号 |
+|---|---|
+| 修 bug、调默认值 | X.Y.**Z+1** |
+| 加新功能（向后兼容） | X.**Y+1**.0 |
+| 破坏性变更 | **X+1**.0.0 |
+
+**实例**：
+
+- 1.0.0 → 1.0.1（修 bug）
+- 1.0.1 → 1.1.0（加新字段）
+- 1.1.0 → 2.0.0（删除旧字段，需要数据迁移）
+
+## changelog
+
+每个版本写 `CHANGELOG.md`：
+
+```markdown
+# Changelog
+
+## [1.5.0] - 2026-04-28
+
+### 新增
+- 加 CAD 图纸字段
+- 加 ISO 认证字段
+
+### 修改
+- 规格表字段类型改为富文本（自动迁移）
+
+### 修复
+- 修了视频字段在某些浏览器下无法播放
+
+### 升级注意
+- 升级前请备份
+- 见 migration guide
+```
+
+## 文档
+
+`README.md` 包含：
+
+- 简介
+- 截图 / 视频
+- 安装步骤
+- 配置说明
+- 常见问题
+- 联系方式
+
+## 分发渠道
+
+| 渠道 | 适合 |
+|---|---|
+| **GitHub Releases** | 开源 / 公开 |
+| **公司内部仓库** | 内部使用 |
+| **官方主题市场**（建设中） | 商业出售 |
+| **直接给客户** | 一对一定制 |
+
+## 商业授权
+
+如果商业出售：
+
+- **MIT** / **Apache 2.0**：开源 + 商用
+- **Commercial License**：商业授权
+- **Dual License**：开源 + 商业版本
+
+写清 LICENSE 文件。
+
+## 安全检查
+
+发布前：
+
+- [ ] 没有硬编码的 API Key / 密钥
+- [ ] 没有 backdoor / 调试入口
+- [ ] 第三方依赖**没有已知漏洞**（`pnpm audit`）
+- [ ] 日志不输出敏感信息
+- [ ] 安全测试通过（XSS / CSRF）
+
+## 升级体验
+
+**用户升级时**应该：
+
+- 旧版数据**自动迁移**（不需要手动处理）
+- changelog 清晰说明变更
+- 不破坏现有自定义配置
+
+**坏的开发者**：每个版本破坏现有数据 → 用户失去信任。
+
+## 接下来
+
+- [贡献指南](/docs/developer/contributing) — 贡献给官方
+- [模型包升级](/docs/model-packages/upgrade-version) — 用户视角
+- [主题升级](/docs/themes/install-switch#升级主题新版本) — 用户视角

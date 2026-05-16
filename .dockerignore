@@ -1,0 +1,30 @@
+# Docker build 上下文排除清单
+# 加快 build · 避免拖入无关文件
+
+node_modules
+.astro
+dist
+.git
+.github
+.vscode
+.idea
+.DS_Store
+
+# Caddy 运行数据（生产服务器上才有）
+caddy-data
+caddy-config
+caddy-logs
+
+# 环境变量（敏感）
+.env
+.env.local
+.env.*.local
+
+# 文档自身（不参与 build · docs-content/ 已在 src/ 内）
+docs/
+
+# 备份与日志
+backups
+*.log
+*.dump
+*.sql.gz

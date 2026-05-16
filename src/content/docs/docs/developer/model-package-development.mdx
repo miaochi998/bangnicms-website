@@ -1,0 +1,294 @@
+---
+title: 模型包开发
+description: 模型包结构、字段定义、迁移、验证——给字段扩展开发者的完整指南。
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+模型包给内容**追加字段**——不需要改 BangNiCMS 核心代码。
+
+## 模型包结构
+
+```
+my-model-package/
+├── manifest.json         必填：包元数据
+├── README.md
+├── fields.ts             字段定义
+├── migrations/           迁移脚本
+│   ├── v1.0.0-init.ts
+│   └── v1.5.0-add-fields.ts
+└── package.json
+```
+
+## manifest.json
+
+```json
+{
+  "extensionType": "model-package",
+  "extensionKey": "industrial-equipment-fields",
+  "name": "工业设备字段",
+  "version": "1.5.0",
+  "author": "Your Name",
+  "description": "为工业设备站标准化扩展字段",
+  "compatibility": {
+    "bangnicms": ">=1.0.0"
+  },
+  "targetEntity": "Product"
+}
+```
+
+`targetEntity` 指定字段挂到哪类内容：
+
+- `Product` / `Article` / `Page` / `Download` / `Category` / `Menu`
+- `*`（适用于所有内容类型）
+
+## 字段定义
+
+```ts
+// fields.ts
+import { defineFields } from '@bangnicms/sdk';
+
+export default defineFields([
+  {
+    fieldKey: 'model_no',
+    label: '型号',
+    type: 'short-text',
+    required: true,
+    localizable: true,
+    group: 'basic-info',
+    order: 1,
+    validation: { maxLength: 50, pattern: '^[A-Z0-9-]+$' },
+    helpText: '英文大写字母 + 数字 + 短横线',
+  },
+  {
+    fieldKey: 'specifications',
+    label: '规格表',
+    type: 'rich-text',
+    required: true,
+    localizable: true,
+    group: 'technical',
+    order: 1,
+  },
+  {
+    fieldKey: 'cad_drawings',
+    label: 'CAD 图纸',
+    type: 'multi-file',
+    maxItems: 10,
+    group: 'media',
+    order: 1,
+  },
+  {
+    fieldKey: 'iso_certifications',
+    label: 'ISO 认证',
+    type: 'multi-select',
+    options: [
+      { value: 'iso9001', label: 'ISO 9001' },
+      { value: 'iso14001', label: 'ISO 14001' },
+      { value: 'ce', label: 'CE' },
+    ],
+    group: 'certifications',
+    order: 1,
+  },
+  {
+    fieldKey: 'demo_video',
+    label: '演示视频',
+    type: 'video',
+    group: 'media',
+    order: 2,
+  },
+]);
+```
+
+## 字段类型
+
+| 类型 | 用 |
+|---|---|
+| `short-text` | 单行文本 |
+| `long-text` | 多行文本 |
+| `rich-text` | 富文本（HTML） |
+| `number` | 数字 |
+| `boolean` | 开关 |
+| `date` / `datetime` | 日期 / 时间 |
+| `url` | URL |
+| `email` | 邮箱 |
+| `select` / `multi-select` | 单 / 多选 |
+| `image` / `multi-image` | 图片 |
+| `file` / `multi-file` | 文件 |
+| `video` | 视频 |
+| `json` | 结构化 JSON |
+| `reference` | 关联其他内容 |
+
+## 验证规则
+
+每种类型支持的验证：
+
+```ts
+{
+  validation: {
+    required: true,         // 必填
+    minLength: 5,           // 最小长度（文本）
+    maxLength: 100,         // 最大长度
+    min: 0,                 // 最小值（数字）
+    max: 9999,
+    pattern: '^[A-Z]+$',    // 正则
+    fileSize: 5 * 1024 * 1024, // 最大文件大小
+    fileTypes: ['image/png', 'image/jpeg'],
+  }
+}
+```
+
+## 分组（group）
+
+字段分组让编辑页**有结构**：
+
+```ts
+// fields.ts
+export const groups = [
+  { key: 'basic-info', label: '基本信息', order: 1, defaultExpanded: true },
+  { key: 'technical', label: '技术参数', order: 2, defaultExpanded: false },
+  { key: 'media', label: '多媒体', order: 3, defaultExpanded: false },
+  { key: 'certifications', label: '认证资质', order: 4, defaultExpanded: false },
+];
+```
+
+## 多语言（localizable）
+
+字段是否独立支持多语言：
+
+- `localizable: true` → 中英文 Tab 各一份值
+- `localizable: false` → 全语言共享一份
+
+## 默认值
+
+```ts
+{
+  fieldKey: 'show_inquiry_button',
+  type: 'boolean',
+  default: true,  // 启用模型包时所有现有内容自动填这个值
+}
+```
+
+## 迁移脚本
+
+升级模型包时自动跑：
+
+```ts
+// migrations/v1.5.0-add-fields.ts
+import { defineMigration } from '@bangnicms/sdk';
+
+export default defineMigration({
+  version: '1.5.0',
+  upgrade: async ({ db, addField, modifyField, deleteField }) => {
+    // 加新字段
+    await addField('cad_drawings', {
+      type: 'multi-file',
+      maxItems: 10,
+      label: 'CAD 图纸',
+    });
+
+    // 改字段类型
+    await modifyField('specifications', {
+      from: { type: 'short-text' },
+      to: { type: 'rich-text' },
+      transformValue: (oldValue) => `<p>${oldValue}</p>`,
+    });
+
+    // 删字段
+    await deleteField('legacy_serial_no', { archive: true });
+  },
+  downgrade: async ({ db, ... }) => {
+    // 反向操作（用于回滚）
+  },
+});
+```
+
+## 迁移类型
+
+### 加字段
+
+新加的字段对**已存在的内容**默认值为 `null` / 默认值。
+
+### 改字段类型
+
+需要 `transformValue` 函数：
+
+```ts
+{
+  from: { type: 'number' },
+  to: { type: 'short-text' },
+  transformValue: (n) => String(n),
+}
+```
+
+### 删字段
+
+```ts
+await deleteField('field_key', {
+  archive: true,    // 保留数据（推荐）
+  // 或
+  archive: false,   // 彻底删除（数据丢）
+});
+```
+
+## 字段可见性
+
+控制谁能看 / 改：
+
+```ts
+{
+  visibility: {
+    edit: ['admin', 'content-editor'],  // 这些角色可见可改
+    list: ['admin', 'content-editor'],  // 列表页可见
+    frontend: 'all',                     // 前台是否输出
+  }
+}
+```
+
+## 字段在前台展示
+
+主题需要**主动渲染**模型包字段——详见 [主题开发 - 模型包字段渲染](/docs/developer/theme-development#模型包字段渲染)。
+
+主题可以查询字段值：
+
+```astro
+---
+import { getExtensionFields } from '@bangnicms/sdk';
+const fields = await getExtensionFields('product', productId, { lang });
+---
+
+{fields.cad_drawings && (
+  <section>
+    <h3>CAD 图纸</h3>
+    <ul>
+      {fields.cad_drawings.value.map((file) => (
+        <li><a href={file.url}>{file.name}</a></li>
+      ))}
+    </ul>
+  </section>
+)}
+```
+
+## 测试
+
+- 单元测试：字段定义 / 迁移函数
+- 集成测试：在测试 BangNiCMS 实例上传安装 + 升级 + 卸载
+- 数据完整性：升级前后抽样验证
+
+## 打包发布
+
+```bash
+pnpm build
+zip -r my-model-package-v1.5.0.zip manifest.json fields.ts migrations/ README.md
+```
+
+## 安全
+
+- 字段 `field_key` 不能跟系统保留字段冲突（如 `id` / `createdAt`）
+- 删除字段操作要**有日志**
+- 跨主版本升级要**充分测试**
+
+## 接下来
+
+- [API 总览](/docs/developer/api-overview) — 后端 API
+- [打包与发布](/docs/developer/packaging) — 打包流程
+- [本地开发环境](/docs/developer/local-dev) — 搭建环境

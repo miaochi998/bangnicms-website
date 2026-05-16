@@ -1,128 +1,404 @@
-/* ============================================================
- * BangNiCMS 文档 — Starlight 极简风格（参考 Stripe / Vercel / Linear Docs）
- * ------------------------------------------------------------
- * 设计原则：
- *   1. 不覆盖 Starlight 自带的灰阶/暗模式 token（让它自己处理 prefers-color-scheme）
- *   2. 只调品牌色（accent）、字体、内容宽度、排版细节
- *   3. Aside 与 Card 去饱和度，统一成"灰底 + 单色边线"
- * ============================================================ */
+/* =============================================================================
+ * BangNiCMS 文档 — Starlight 现代风格
+ * -----------------------------------------------------------------------------
+ * 设计语言：shadcn / linear / vercel-docs
+ *   - 中性灰：zinc / neutral
+ *   - 单一品牌色：cyan-600 (与宣传站 brand-500 #0EA5E9 同源)
+ *   - 圆角系统：--radius = 0.5rem
+ *   - 阴影：低透明度 + 多层叠加
+ *   - 中文字体优化：PingFang / 苹方 / Source Han Sans
+ *   - 暗色模式：近纯黑 #0A0A0B（不是灰扑扑的 slate-900）
+ * ============================================================================= */
+
+/* =============================================================================
+ * [1] CSS Variables — 设计 Token
+ * ============================================================================= */
 
 :root {
-  /* 品牌色：只用 sky-600 一种（亮模式） */
-  --sl-color-accent-low: #e0f2fe;
-  --sl-color-accent: #0284c7;
-  --sl-color-accent-high: #075985;
+  /* —— 品牌色（亮模式）—— */
+  --sl-color-accent-low: #ecfeff;        /* cyan-50 */
+  --sl-color-accent: #0891b2;            /* cyan-600 */
+  --sl-color-accent-high: #155e75;       /* cyan-800 */
 
-  /* 字体栈 */
+  /* —— 中性灰（覆盖 Starlight 默认 gray，用 zinc 替代）——
+   * 注意：--sl-color-white 是 Starlight 语义化"前景色"变量
+   *   亮模式 = 深色（与白底对立），暗模式 = 浅色
+   *   不是字面意义的白色！
+   */
+  --sl-color-white: #18181b;             /* 亮模式前景 = zinc-900 */
+  --sl-color-gray-1: #18181b;            /* zinc-900 */
+  --sl-color-gray-2: #27272a;            /* zinc-800 */
+  --sl-color-gray-3: #52525b;            /* zinc-600 */
+  --sl-color-gray-4: #71717a;            /* zinc-500 */
+  --sl-color-gray-5: #e4e4e7;            /* zinc-200 */
+  --sl-color-gray-6: #f4f4f5;            /* zinc-100 */
+  --sl-color-gray-7: #fafafa;            /* zinc-50 */
+  --sl-color-black: #ffffff;             /* 主背景 */
+  --sl-color-bg: #ffffff;
+  --sl-color-bg-nav: rgba(255, 255, 255, 0.85);
+  --sl-color-bg-sidebar: #fafafa;
+  --sl-color-bg-inline-code: #f4f4f5;
+  --sl-color-bg-accent: var(--sl-color-accent-low);
+  --sl-color-text: #18181b;
+  --sl-color-text-accent: var(--sl-color-accent);
+  --sl-color-text-invert: #ffffff;
+  --sl-color-hairline: #e4e4e7;
+  --sl-color-hairline-shade: #d4d4d8;
+
+  /* —— 字体栈 —— */
   --sl-font:
     "Inter", -apple-system, BlinkMacSystemFont, "PingFang SC",
-    "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans CN",
+    "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans SC",
     "Noto Sans SC", system-ui, sans-serif;
   --sl-font-mono:
-    "JetBrains Mono", "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+    "JetBrains Mono", "Geist Mono", "SF Mono", "Menlo", "Monaco",
+    "Consolas", monospace;
 
-  /* 内容宽度收紧到舒适阅读区间 */
-  --sl-content-width: 48rem;
-  --sl-sidebar-width: 18.75rem;
-  --sl-text-base: 0.9375rem;
+  /* —— 排版尺度（精调字号节奏）—— */
+  /* content-width 采用 fluid clamp：
+   *   小屏：刷 40rem 底线；
+   *   中屏：随视口线性扩展；
+   *   大屏：64rem 封顶（避免行过长损害阅读体验） */
+  --sl-content-width: clamp(40rem, 60vw, 64rem);
+  --sl-sidebar-width: 17rem;
+  --sl-text-base: 0.9375rem;     /* 15px 主文字 */
+  --sl-text-h1: 1.875rem;        /* 30px */
+  --sl-text-h2: 1.5rem;          /* 24px */
+  --sl-text-h3: 1.25rem;         /* 20px */
+  --sl-text-h4: 1.0625rem;       /* 17px */
+  --sl-text-code: 0.875rem;
+
+  /* —— 圆角系统（shadcn）—— */
+  --sl-radius-sm: 0.375rem;
+  --sl-radius: 0.5rem;
+  --sl-radius-lg: 0.75rem;
+  --sl-radius-xl: 1rem;
+
+  /* —— 阴影系统（shadcn）—— */
+  --sl-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --sl-shadow:
+    0 1px 3px 0 rgb(0 0 0 / 0.06),
+    0 1px 2px -1px rgb(0 0 0 / 0.06);
+  --sl-shadow-md:
+    0 4px 6px -1px rgb(0 0 0 / 0.06),
+    0 2px 4px -2px rgb(0 0 0 / 0.06);
+  --sl-shadow-lg:
+    0 10px 15px -3px rgb(0 0 0 / 0.06),
+    0 4px 6px -4px rgb(0 0 0 / 0.06);
+
+  /* —— Aside 配色 —— */
+  --sl-aside-note-bg: #f0f9ff;            /* sky-50 */
+  --sl-aside-note-border: #0ea5e9;        /* sky-500 */
+  --sl-aside-tip-bg: #f0fdf4;             /* green-50 */
+  --sl-aside-tip-border: #22c55e;         /* green-500 */
+  --sl-aside-caution-bg: #fffbeb;         /* amber-50 */
+  --sl-aside-caution-border: #f59e0b;     /* amber-500 */
+  --sl-aside-danger-bg: #fef2f2;          /* red-50 */
+  --sl-aside-danger-border: #ef4444;      /* red-500 */
 }
 
-/* 暗模式只调 accent，让 Starlight 默认灰阶继续工作 */
 :root[data-theme="dark"] {
-  --sl-color-accent-low: #0c4a6e;
-  --sl-color-accent: #38bdf8;
-  --sl-color-accent-high: #bae6fd;
+  --sl-color-accent-low: #164e63;          /* cyan-900 */
+  --sl-color-accent: #06b6d4;              /* cyan-500 */
+  --sl-color-accent-high: #67e8f9;         /* cyan-300 */
+
+  --sl-color-white: #fafafa;
+  --sl-color-gray-1: #fafafa;
+  --sl-color-gray-2: #e4e4e7;
+  --sl-color-gray-3: #a1a1aa;
+  --sl-color-gray-4: #71717a;
+  --sl-color-gray-5: #27272a;
+  --sl-color-gray-6: #1c1c1f;
+  --sl-color-gray-7: #131316;
+  --sl-color-black: #0a0a0b;
+  --sl-color-bg: #0a0a0b;
+  --sl-color-bg-nav: rgba(10, 10, 11, 0.8);
+  --sl-color-bg-sidebar: #0a0a0b;
+  --sl-color-bg-inline-code: #1c1c1f;
+  --sl-color-bg-accent: rgba(6, 182, 212, 0.1);
+  --sl-color-text: #fafafa;
+  --sl-color-text-invert: #0a0a0b;
+  --sl-color-hairline: #27272a;
+  --sl-color-hairline-shade: #3f3f46;
+
+  --sl-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --sl-shadow:
+    0 1px 3px 0 rgb(0 0 0 / 0.4),
+    0 1px 2px -1px rgb(0 0 0 / 0.3);
+  --sl-shadow-md:
+    0 4px 6px -1px rgb(0 0 0 / 0.4),
+    0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --sl-shadow-lg:
+    0 10px 15px -3px rgb(0 0 0 / 0.5),
+    0 4px 6px -4px rgb(0 0 0 / 0.4);
+
+  --sl-aside-note-bg: rgba(14, 165, 233, 0.08);
+  --sl-aside-note-border: #38bdf8;
+  --sl-aside-tip-bg: rgba(34, 197, 94, 0.08);
+  --sl-aside-tip-border: #4ade80;
+  --sl-aside-caution-bg: rgba(245, 158, 11, 0.08);
+  --sl-aside-caution-border: #fbbf24;
+  --sl-aside-danger-bg: rgba(239, 68, 68, 0.08);
+  --sl-aside-danger-border: #f87171;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --sl-color-accent-low: #0c4a6e;
-    --sl-color-accent: #38bdf8;
-    --sl-color-accent-high: #bae6fd;
+    --sl-color-accent-low: #164e63;
+    --sl-color-accent: #06b6d4;
+    --sl-color-accent-high: #67e8f9;
   }
 }
 
-/* ============================================================
- * 排版微调
- * ============================================================ */
+/* =============================================================================
+ * [2] Typography — 中文优化排版（全局节奏规则）
+ * -----------------------------------------------------------------------------
+ * 节奏 Token：
+ *   - 段落行高 1.85，段落 margin-block 0.875rem
+ *   - H1 → 内容首段：1rem
+ *   - H2 → 内容：1rem（H2 自身 margin-top 3rem 拉开章节距离）
+ *   - H3 → 内容：0.625rem（H3 自身 margin-top 2.25rem）
+ *   - H4 → 内容：0.5rem
+ *   - 列表项 li 之间：0.375rem；列表与上下段落：0.875rem
+ *   - 列表嵌套：缩进 1.25rem
+ * ============================================================================= */
+
+body {
+  font-feature-settings: "cv11", "ss01", "ss03";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
 
 .sl-markdown-content {
   font-feature-settings: "cv11", "ss01";
 }
 
+/* 段落与列表项基础排版 */
 .sl-markdown-content :is(p, li) {
-  line-height: 1.75;
+  line-height: 1.85;
+  letter-spacing: 0.01em;
 }
 
+/* 段落之间垂直节奏 */
+.sl-markdown-content > p,
+.sl-markdown-content p {
+  margin-block: 0.875rem;
+}
+
+/* 列表节奏 */
+.sl-markdown-content :is(ul, ol) {
+  margin-block: 0.875rem;
+  padding-left: 1.5rem;
+}
+
+.sl-markdown-content li {
+  margin-block: 0.375rem;
+}
+
+.sl-markdown-content li > :is(ul, ol) {
+  margin-block: 0.375rem;
+}
+
+.sl-markdown-content li > p {
+  margin-block: 0.25rem;
+}
+
+/* 标题：节奏 = 上松（拉开章节）+ 下紧（贴近内容） */
 .sl-markdown-content h1 {
-  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  font-size: 1.875rem;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+  margin-bottom: 1rem;
 }
 
 .sl-markdown-content h2 {
-  font-size: 1.375rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  margin-top: 2.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.35;
+  margin-top: 3rem;
+  margin-bottom: 1rem;
 }
 
 .sl-markdown-content h3 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin-top: 2rem;
+  font-size: 1.25rem;          /* 20px — 与正文 15px 拉开 5px 差 */
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-top: 2.25rem;
+  margin-bottom: 0.625rem;
+  line-height: 1.4;
+  color: var(--sl-color-text);
 }
 
-/* 正文链接：底部细线，hover 加重 */
-.sl-markdown-content a:not(.not-content *):not(.heading-link) {
+.sl-markdown-content h4 {
+  font-size: 1.0625rem;        /* 17px — 与正文 15px 拉开 2px + 加粗 */
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+  color: var(--sl-color-text);
+}
+
+/* 正文段落与列表项：稍轻一点的字重，与 H3/H4 拉开层次 */
+.sl-markdown-content :is(p, li) {
+  font-weight: 400;
+  color: var(--sl-color-gray-2);
+}
+
+/* 正文中的 strong 维持深色字色，作为段内强调（不与 H 标题混淆） */
+.sl-markdown-content :is(p, li) strong {
+  color: var(--sl-color-text);
+  font-weight: 600;
+}
+
+/* 标题紧跟标题（无内容夹层）时压缩间距 */
+.sl-markdown-content :is(h1, h2, h3, h4) + :is(h2, h3, h4) {
+  margin-top: 1rem;
+}
+
+/* 正文链接：底部细线，accent hover
+ * 严格排除：锚点链接 / Card 内链接 / Aside 标题 / 任何不在 markdown 文本流的链接 */
+.sl-markdown-content p a,
+.sl-markdown-content li a,
+.sl-markdown-content td a,
+.sl-markdown-content th a {
   color: var(--sl-color-accent);
   text-decoration: none;
-  border-bottom: 1px solid color-mix(in srgb, var(--sl-color-accent) 35%, transparent);
-  transition: border-color 200ms ease;
-}
-.sl-markdown-content a:not(.not-content *):not(.heading-link):hover {
-  border-bottom-color: var(--sl-color-accent);
-}
-
-/* 行内代码：低饱和度 */
-.sl-markdown-content :not(pre) > code {
-  padding: 0.125rem 0.375rem;
-  border-radius: 4px;
-  font-size: 0.875em;
+  border-bottom: 1px solid color-mix(in srgb, var(--sl-color-accent) 30%, transparent);
+  transition: all 200ms ease;
   font-weight: 500;
 }
 
-/* 表格：极简边框 */
-.sl-markdown-content th {
-  font-weight: 600;
-  font-size: 0.8125rem;
-  text-transform: none;
-  letter-spacing: 0;
+.sl-markdown-content p a:hover,
+.sl-markdown-content li a:hover,
+.sl-markdown-content td a:hover,
+.sl-markdown-content th a:hover {
+  border-bottom-color: var(--sl-color-accent);
+  background: color-mix(in srgb, var(--sl-color-accent) 8%, transparent);
 }
 
-/* ============================================================
- * Aside（提示框）：去掉默认饱和色，统一成"灰底 + 单色细左边线"
- * ============================================================ */
+/* heading 锚点图标：彻底无装饰 */
+.sl-markdown-content .heading-link,
+.sl-markdown-content a.heading-link,
+.sl-markdown-content :is(h1, h2, h3, h4, h5, h6) a.heading-link {
+  border: none !important;
+  border-bottom: none !important;
+  background: none !important;
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
+.sl-markdown-content .heading-link:hover {
+  background: none !important;
+}
+
+/* 段落引用 blockquote — shadcn 卡片风 */
+.sl-markdown-content blockquote {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  border-left: 3px solid var(--sl-color-accent);
+  background: var(--sl-color-gray-7);
+  border-radius: 0 var(--sl-radius) var(--sl-radius) 0;
+  color: var(--sl-color-gray-2);
+  font-style: normal;
+}
+
+.sl-markdown-content blockquote p {
+  margin: 0;
+}
+
+/* 行内代码 */
+.sl-markdown-content :not(pre) > code {
+  padding: 0.125rem 0.4rem;
+  border-radius: var(--sl-radius-sm);
+  font-size: 0.85em;
+  font-weight: 500;
+  background: var(--sl-color-bg-inline-code);
+  color: var(--sl-color-text);
+  border: 1px solid var(--sl-color-hairline);
+  font-family: var(--sl-font-mono);
+}
+
+/* 链接里的行内代码 */
+.sl-markdown-content a code {
+  color: inherit !important;
+}
+
+/* hr 分隔线 */
+.sl-markdown-content hr {
+  border: none;
+  border-top: 1px solid var(--sl-color-hairline);
+  margin: 3rem 0;
+}
+
+/* =============================================================================
+ * [3] Code Blocks — Expressive Code 升级
+ * ============================================================================= */
+
+.expressive-code {
+  margin: 1.5rem 0;
+}
+
+.expressive-code .frame {
+  border-radius: var(--sl-radius-lg) !important;
+  border: 1px solid var(--sl-color-hairline) !important;
+  box-shadow: var(--sl-shadow-sm) !important;
+  overflow: hidden;
+}
+
+.expressive-code .frame .header {
+  border-bottom: 1px solid var(--sl-color-hairline) !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+}
+
+.expressive-code pre {
+  font-size: 0.8125rem !important;
+  line-height: 1.7 !important;
+  font-family: var(--sl-font-mono) !important;
+}
+
+.expressive-code .copy button {
+  border-radius: var(--sl-radius-sm) !important;
+}
+
+/* =============================================================================
+ * [4] Aside — 4 种 shadcn 风提示框
+ * ============================================================================= */
 
 .sl-markdown-content .starlight-aside {
-  border-radius: 6px;
+  margin: 1.5rem 0;
   padding: 1rem 1.25rem;
-  border: 1px solid var(--sl-color-gray-5);
-  background: var(--sl-color-gray-6);
-  border-left-width: 3px;
+  border-radius: var(--sl-radius);
+  border: 1px solid var(--sl-color-hairline);
+  border-left-width: 4px;
+  font-size: 0.9375rem;
+  color: var(--sl-color-text) !important;
+}
+
+.sl-markdown-content .starlight-aside p,
+.sl-markdown-content .starlight-aside li {
+  color: var(--sl-color-text) !important;
 }
 
 .sl-markdown-content .starlight-aside--note {
-  border-left-color: var(--sl-color-accent);
+  background: var(--sl-aside-note-bg);
+  border-left-color: var(--sl-aside-note-border);
 }
 .sl-markdown-content .starlight-aside--tip {
-  border-left-color: #16a34a;
+  background: var(--sl-aside-tip-bg);
+  border-left-color: var(--sl-aside-tip-border);
 }
 .sl-markdown-content .starlight-aside--caution {
-  border-left-color: #ca8a04;
+  background: var(--sl-aside-caution-bg);
+  border-left-color: var(--sl-aside-caution-border);
 }
 .sl-markdown-content .starlight-aside--danger {
-  border-left-color: #dc2626;
+  background: var(--sl-aside-danger-bg);
+  border-left-color: var(--sl-aside-danger-border);
 }
 
 .sl-markdown-content .starlight-aside__title {
@@ -130,55 +406,611 @@
   font-weight: 600;
   display: inline-flex;
   align-items: center;
-  gap: 0.375rem;
+  gap: 0.5rem;
   margin-bottom: 0.5rem;
 }
 
-.sl-markdown-content .starlight-aside p {
-  margin: 0.25rem 0;
-  font-size: 0.9375rem;
+.sl-markdown-content .starlight-aside__icon {
+  width: 1rem;
+  height: 1rem;
 }
 
-/* ============================================================
- * Card / CardGrid：统一灰阶
- * ============================================================ */
+.sl-markdown-content .starlight-aside p {
+  margin: 0.375rem 0;
+  line-height: 1.7;
+}
 
+.sl-markdown-content .starlight-aside p:last-child {
+  margin-bottom: 0;
+}
+
+.sl-markdown-content .starlight-aside code {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+:root[data-theme="dark"] .sl-markdown-content .starlight-aside code {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* =============================================================================
+ * [5] Card / CardGrid — shadcn 风卡片
+ * ============================================================================= */
+
+.sl-markdown-content .card,
 .card {
   border: 1px solid var(--sl-color-hairline);
-  border-radius: 6px;
-  padding: 1rem 1.25rem;
-  transition: border-color 200ms ease;
+  border-radius: var(--sl-radius-lg);
+  padding: 1.25rem 1.375rem;
+  background: var(--sl-color-bg);
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease,
+    transform 200ms ease;
+  position: relative;
+  overflow: hidden;
 }
 
+.sl-markdown-content .card::before,
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--sl-color-accent) 4%, transparent) 0%,
+    transparent 50%
+  );
+  opacity: 0;
+  transition: opacity 300ms ease;
+  pointer-events: none;
+}
+
+.sl-markdown-content .card:hover,
 .card:hover {
-  border-color: var(--sl-color-accent);
+  border-color: color-mix(in srgb, var(--sl-color-accent) 50%, var(--sl-color-hairline));
+  box-shadow: var(--sl-shadow-md);
+  transform: translateY(-1px);
 }
 
+.sl-markdown-content .card:hover::before,
+.card:hover::before {
+  opacity: 1;
+}
+
+/* Card 图标：统一 accent 色 + 透明背景，禁用 Starlight 默认彩色块 */
+.sl-markdown-content .card .icon,
 .card .icon {
-  color: var(--sl-color-gray-3);
+  color: var(--sl-color-accent) !important;
+  background: none !important;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
 }
 
+.sl-markdown-content .card .icon svg,
+.card .icon svg {
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  stroke-width: 1.75 !important;
+}
+
+.sl-markdown-content .card .title,
 .card .title {
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
 }
 
-/* ============================================================
- * Sidebar：当前页用 accent 左侧细线 + 浅背景
- * ============================================================ */
+.sl-markdown-content .card p:last-child,
+.card p:last-child {
+  margin-bottom: 0;
+  color: var(--sl-color-gray-3);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+/* =============================================================================
+ * [6] Sidebar — 现代分组与高亮
+ * ============================================================================= */
+
+/* sidebar 容器 */
+.sidebar {
+  font-size: 0.875rem;
+}
+
+/* 章节分组标题 */
+.sidebar [aria-current="page"],
+.sidebar a:hover {
+  border-radius: var(--sl-radius-sm);
+}
+
+.sidebar a {
+  border-radius: var(--sl-radius-sm);
+  transition:
+    background 150ms ease,
+    color 150ms ease;
+  padding: 0.4rem 0.75rem;
+}
+
+.sidebar a:hover {
+  background: var(--sl-color-gray-6);
+  color: var(--sl-color-text);
+}
 
 .sidebar a[aria-current="page"] {
-  background: color-mix(in srgb, var(--sl-color-accent) 8%, transparent);
+  background: var(--sl-color-bg-accent);
   color: var(--sl-color-accent);
   font-weight: 600;
-  border-left: 2px solid var(--sl-color-accent);
-  padding-left: calc(0.75rem - 2px);
+  position: relative;
 }
 
-/* ============================================================
- * 代码块外框：去阴影，统一边框
- * ============================================================ */
+.sidebar a[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  left: -0.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: var(--sl-color-accent);
+  border-radius: 2px;
+}
 
-.expressive-code .frame {
+/* 章节组之间的视觉分隔 */
+.sidebar > ul > li {
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed var(--sl-color-hairline);
+}
+.sidebar > ul > li:last-child {
+  border-bottom: none;
+}
+
+/* 章节组标题（"介绍" / "部署上线" / "即将上线"） */
+.sidebar summary {
+  padding: 0.5rem 0.75rem 0.25rem !important;
+  border-radius: 0;
+}
+
+.sidebar summary:hover {
+  background: none !important;
+}
+
+/* 实际章节标题文字（嵌在 summary > .group-label > .large 里） */
+.sidebar .group-label .large,
+.sidebar summary .large {
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sl-color-gray-3) !important;
+}
+
+.sidebar summary:hover .large {
+  color: var(--sl-color-text) !important;
+}
+
+/* 章节组的子链接 */
+.sidebar ul ul a {
+  font-size: 0.875rem;
+  color: var(--sl-color-gray-2);
+  font-weight: 400;
+}
+
+/* =============================================================================
+ * [7] Right Sidebar (TOC) — vercel docs 风
+ * ============================================================================= */
+
+starlight-toc nav,
+.right-sidebar {
+  font-size: 0.8125rem;
+}
+
+starlight-toc nav a,
+.right-sidebar a {
+  display: block;
+  padding: 0.3rem 0.75rem;
+  color: var(--sl-color-gray-3);
+  border-left: 2px solid transparent;
+  transition: all 150ms ease;
+  text-decoration: none;
+  border-radius: 0;
+  border-bottom: none !important;
+  background: none !important;
+  font-weight: 400;
+}
+
+starlight-toc nav a:hover,
+.right-sidebar a:hover {
+  color: var(--sl-color-text);
+  border-left-color: var(--sl-color-hairline);
+}
+
+starlight-toc nav a[aria-current="true"],
+.right-sidebar a[aria-current="true"] {
+  color: var(--sl-color-accent);
+  border-left-color: var(--sl-color-accent);
+  font-weight: 500;
+}
+
+/* 本页内容标题 */
+starlight-toc h2,
+.right-sidebar h2 {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sl-color-gray-3);
+  padding: 0 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+/* =============================================================================
+ * [8] Tables — 现代表格（无重叠边框）
+ * ============================================================================= */
+
+/* 表格：用 separate + 0 间距 + cell border-bottom 替代 tr border
+ * 原因：tr border 在 border-collapse:collapse + overflow:hidden + border-radius
+ * 组合下，部分浏览器会出现裁剪导致行线断开 */
+.sl-markdown-content table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--sl-color-hairline);
+  border-radius: var(--sl-radius-lg);
+  margin: 1.5rem 0;
+  width: 100%;
+  font-size: 0.875rem;
+  overflow: hidden;
+  /* 关键：强制还原为 table 显示，覆盖 Starlight 默认的 display:block
+   * （否则 width:100% 不生效，表格会被压缩到内容宽度，右侧大片留白） */
+  display: table !important;
+  table-layout: auto;
+}
+
+.sl-markdown-content th,
+.sl-markdown-content td {
+  border: none;
+  border-bottom: 1px solid var(--sl-color-hairline);
+  padding: 0.75rem 1rem;
+  vertical-align: top;
+  text-align: left;
+  /* 中文按词组保留，避免短中文（如"必填""可选"）被拆成单字纵向排列
+   * overflow-wrap 必须用 break-word 而非 anywhere，否则会推翻 keep-all */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  line-height: 1.7;
+}
+
+.sl-markdown-content thead th {
+  background: var(--sl-color-gray-7);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--sl-color-text);
+  border-bottom: 1px solid var(--sl-color-hairline);
+}
+
+/* 最后一行不再画底线，避免与外框重叠 */
+.sl-markdown-content tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.sl-markdown-content tbody tr {
+  transition: background 150ms ease;
+}
+
+.sl-markdown-content tbody tr:hover td {
+  background: var(--sl-color-gray-7);
+}
+
+/* =============================================================================
+ * [9] Header / Top Nav — 优化
+ * ============================================================================= */
+
+/* 顶部导航 — 完全无边框，靠背景模糊自然分层 */
+.header {
+  background: var(--sl-color-bg-nav) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: none !important;
   box-shadow: none !important;
+}
+
+/* Starlight 默认在 sidebar 与 main 之间有 border，全部去掉 */
+.sidebar-pane {
+  border-right: none !important;
+}
+
+/* main 内容区顶部默认有 border-top，去掉 */
+.main-frame .main-pane,
+.content-panel,
+.content-panel + .content-panel {
+  border-top: none !important;
+}
+
+/* page-divider（如有）也隐藏 */
+.page > .main-frame::before,
+.page-divider {
+  display: none !important;
+}
+
+/* Logo 部分：文字 + 图标
+ * Starlight 将 logo.svg 渲染为 <img>（导致 currentColor 失效），
+ * 这里用 CSS mask 把 img 当作单色蒙版，颜色随主题变化。 */
+.site-title {
+  font-weight: 700 !important;
+  font-size: 1.0625rem !important;
+  letter-spacing: -0.01em;
+  color: var(--sl-color-text);
+}
+
+.site-title img {
+  /* 隐藏原始 img 填充，用 mask 重新染色（data URI 与 logo.svg 内容保持一致） */
+  width: 24px !important;
+  height: 24px !important;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 5h7a4 4 0 0 1 0 8H5z'/><path d='M5 13h8.5a4 4 0 0 1 0 8H5z'/></svg>") no-repeat center / contain;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 5h7a4 4 0 0 1 0 8H5z'/><path d='M5 13h8.5a4 4 0 0 1 0 8H5z'/></svg>") no-repeat center / contain;
+}
+
+/* 浅色主题：logo 用 中性灰；深色主题：白色 */
+:root .site-title { color: #52525b; }
+:root .site-title span { color: var(--sl-color-accent); }
+:root[data-theme="dark"] .site-title { color: #fafafa; }
+:root[data-theme="dark"] .site-title span { color: var(--sl-color-accent); }
+
+/* social-icons 与 theme-select 之间的竖分隔线——去掉 */
+.social-icons::after,
+.social-icons::before {
+  display: none !important;
+}
+
+/* 搜索框 — shadcn Input 风 */
+site-search button[data-open-modal] {
+  border: 1px solid var(--sl-color-hairline) !important;
+  border-radius: var(--sl-radius) !important;
+  background: var(--sl-color-bg) !important;
+  font-size: 0.875rem !important;
+  padding: 0.5rem 0.875rem !important;
+  transition: all 200ms ease;
+  box-shadow: var(--sl-shadow-sm);
+}
+
+site-search button[data-open-modal]:hover {
+  border-color: var(--sl-color-hairline-shade) !important;
+  background: var(--sl-color-gray-7) !important;
+}
+
+site-search button[data-open-modal]:focus {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 2px;
+}
+
+/* kbd 快捷键标签 */
+site-search kbd {
+  background: var(--sl-color-gray-6) !important;
+  border: 1px solid var(--sl-color-hairline) !important;
+  border-radius: var(--sl-radius-sm) !important;
+  padding: 0.125rem 0.375rem !important;
+  font-size: 0.6875rem !important;
+  font-family: var(--sl-font-mono);
+  font-weight: 500;
+  color: var(--sl-color-gray-3) !important;
+}
+
+/* 主题切换 dropdown */
+starlight-theme-select select {
+  border: 1px solid var(--sl-color-hairline) !important;
+  border-radius: var(--sl-radius-sm) !important;
+  font-size: 0.8125rem !important;
+}
+
+/* =============================================================================
+ * [10] Hero / Splash 页面 — 渐变与动效
+ * ============================================================================= */
+
+.hero {
+  padding-top: 3rem;
+}
+
+.hero h1 {
+  font-size: clamp(2rem, 5vw, 3.5rem) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.03em !important;
+  line-height: 1.1 !important;
+  background: linear-gradient(
+    135deg,
+    var(--sl-color-text) 0%,
+    var(--sl-color-accent) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero .tagline {
+  font-size: clamp(1rem, 2vw, 1.25rem) !important;
+  color: var(--sl-color-gray-3) !important;
+  font-weight: 400 !important;
+  margin-top: 1rem !important;
+  line-height: 1.6 !important;
+}
+
+/* hero 按钮 */
+.hero .actions a {
+  border-radius: var(--sl-radius) !important;
+  font-weight: 500 !important;
+  font-size: 0.9375rem !important;
+  padding: 0.625rem 1.25rem !important;
+  transition: all 200ms ease;
+  border-bottom: none !important;
+}
+
+.hero .actions a.primary {
+  background: var(--sl-color-accent) !important;
+  color: white !important;
+  box-shadow: var(--sl-shadow);
+}
+
+.hero .actions a.primary:hover {
+  background: var(--sl-color-accent-high) !important;
+  transform: translateY(-1px);
+  box-shadow: var(--sl-shadow-md);
+}
+
+.hero .actions a.secondary {
+  border: 1px solid var(--sl-color-hairline) !important;
+  background: var(--sl-color-bg) !important;
+  color: var(--sl-color-text) !important;
+}
+
+.hero .actions a.secondary:hover {
+  border-color: var(--sl-color-hairline-shade) !important;
+  background: var(--sl-color-gray-7) !important;
+}
+
+.hero .actions a.minimal {
+  color: var(--sl-color-gray-3) !important;
+}
+
+.hero .actions a.minimal:hover {
+  color: var(--sl-color-text) !important;
+}
+
+/* =============================================================================
+ * 杂项细节
+ * ============================================================================= */
+
+/* heading anchor 链接（默认是 hover 才显示锚点） */
+.sl-markdown-content .heading-link {
+  border-bottom: none !important;
+  background: none !important;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.sl-markdown-content :is(h2, h3, h4):hover .heading-link {
+  opacity: 0.5;
+}
+
+.sl-markdown-content :is(h2, h3, h4) .heading-link:hover {
+  opacity: 1;
+}
+
+/* pagination 上一页/下一页 — 字号节奏：label 小灰、title 中黑 */
+.pagination-links {
+  margin-top: 3rem;
+  gap: 0.75rem !important;
+}
+
+.pagination-links a {
+  border: 1px solid var(--sl-color-hairline) !important;
+  border-radius: var(--sl-radius-lg) !important;
+  padding: 1rem 1.25rem !important;
+  background: var(--sl-color-bg) !important;
+  transition: all 200ms ease;
+  border-bottom: 1px solid var(--sl-color-hairline) !important;
+}
+
+.pagination-links a:hover {
+  border-color: var(--sl-color-accent) !important;
+  background: var(--sl-color-gray-7) !important;
+  transform: translateY(-1px);
+  box-shadow: var(--sl-shadow);
+}
+
+/* 外层 span = "上一页/下一页" label（小灰） */
+.pagination-links a > span {
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  color: var(--sl-color-gray-3) !important;
+  letter-spacing: 0.02em;
+  line-height: 1.6;
+}
+
+/* 内层 .link-title = 目标页名（中黑） */
+.pagination-links a .link-title {
+  display: inline-block;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  color: var(--sl-color-text) !important;
+  margin-top: 0.25rem;
+  letter-spacing: -0.005em;
+  line-height: 1.4;
+}
+
+/* =============================================================================
+ * [11] Tabs — 修复选中蓝线与底边重叠
+ * ============================================================================= */
+
+/* tablist 容器：保留单条底边，作为唯一基线 */
+.sl-markdown-content starlight-tabs > [role="tablist"] {
+  border-bottom: 1px solid var(--sl-color-hairline) !important;
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+/* 每个 tab：默认透明底边占位（保持与基线对齐） */
+.sl-markdown-content starlight-tabs [role="tab"] {
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  margin-bottom: -1px !important; /* 让选中态底边精确盖住 tablist 的 1px 底边 */
+  padding: 0.625rem 1rem !important;
+  font-size: 0.9375rem !important;
+  font-weight: 500 !important;
+  color: var(--sl-color-gray-3) !important;
+  background: none !important;
+  border-radius: 0 !important;
+  transition: all 150ms ease;
+}
+
+.sl-markdown-content starlight-tabs [role="tab"]:hover {
+  color: var(--sl-color-text) !important;
+}
+
+/* 选中态：accent 文字 + 2px 下划线（精确替代 tablist 的 1px 底边） */
+.sl-markdown-content starlight-tabs [role="tab"][aria-selected="true"] {
+  color: var(--sl-color-accent) !important;
+  border-bottom-color: var(--sl-color-accent) !important;
+  font-weight: 600 !important;
+}
+
+/* badge（"WIP"等） */
+.sidebar .badge,
+.badge {
+  font-size: 0.625rem !important;
+  font-weight: 500;
+  padding: 0.125rem 0.375rem !important;
+  border-radius: 0.25rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* 滚动条美化（webkit） */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--sl-color-hairline);
+  border-radius: 5px;
+  border: 2px solid var(--sl-color-bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--sl-color-hairline-shade);
+}
+
+/* 选中文本 */
+::selection {
+  background: color-mix(in srgb, var(--sl-color-accent) 20%, transparent);
+  color: var(--sl-color-text);
 }

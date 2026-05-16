@@ -39,4 +39,4 @@ COPY Caddyfile /etc/caddy/Caddyfile
 
 # 健康检查（compose 层也配 · 这里保留为 image 内置兜底）
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-  CMD wget --quiet --tries=1 --spider http://localhost || exit 1
+  CMD wget --quiet --tries=1 --spider http://localhost:2019/config/ || exit 1

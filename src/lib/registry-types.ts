@@ -251,8 +251,10 @@ export interface RegistryEntry {
    */
   manifest: ExtensionManifest | ModelPackageManifest;
 
-  /** zip 下载地址（mock 阶段为占位 #） */
+  /** zip 下载地址（主仓 MarketService 直接读这里 · 即 tarballUrl） */
   downloadUrl: string;
+  /** zip 文件 sha256（可选 · 提供时主仓安装前强制校验 · 推荐填） */
+  sha256?: string;
   /** 文档站对应章节链接 */
   documentationUrl?: string;
   /** 仓库地址 */

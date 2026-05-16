@@ -35,7 +35,7 @@ services:
       # 访问日志（按需查看 · 100MB 自动滚动）
       - caddy_logs:/var/log/caddy
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:2019/config/"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:2019/config/"]
       interval: 30s
       timeout: 5s
       retries: 3

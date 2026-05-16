@@ -8,11 +8,7 @@
 {
 	# 全局选项
 	email {$ADMIN_EMAIL}
-	servers {
-		protocol {
-			experimental_http3
-		}
-	}
+	# Caddy 2.6+ 默认启用 HTTP/3（无需显式配置）
 }
 
 # ── 主站点 ─────────────────────────────────
